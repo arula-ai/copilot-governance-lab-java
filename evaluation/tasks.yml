@@ -1,0 +1,81 @@
+evaluation_tasks:
+  - task_id: "JV-SEC-001"
+    description: "Harden AuthService token handling"
+    prompt: |
+      Following our team instructions in .github/copilot-instructions.md,
+      refactor AuthService so that:
+      1. Tokens are random and not derived from usernames
+      2. Passwords are never written to disk or logs
+      3. Logout removes all persisted credentials
+      4. Session debug dumps are protected behind an admin check
+    expected_patterns:
+      - "SecureRandom"
+      - "HttpOnly cookie"
+      - "logger.info"
+      - "Optional<User>"
+    anti_patterns:
+      - "System.out.printf"
+      - "Base64.getEncoder()"
+      - "new FileWriter"
+    success_criteria:
+      - "No credential logging"
+      - "Tokens cannot be predicted"
+      - "Session store cleared on logout"
+      - "Debug endpoint gated by authorization"
+
+  - task_id: "JV-XSS-002"
+    description: "Sanitize dashboard rendering"
+    prompt: |
+      Create a sanitization helper and update dashboard.html so that:
+      1. User bios are escaped by default
+      2. Only a safe HTML allowlist is permitted
+      3. Scripts and inline event handlers are stripped
+      4. Tests demonstrate sanitized vs. unsanitized content
+    expected_patterns:
+      - "policyFactory"
+      - "th:text"
+      - "HtmlPolicyBuilder"
+      - "MockMvc"
+    anti_patterns:
+      - "th:utext"
+      - "innerHTML"
+    success_criteria:
+      - "Dangerous input removed"
+      - "Regression tests present"
+      - "Documentation updated"
+
+  - task_id: "JV-UPLOAD-003"
+    description: "Secure file upload endpoint"
+    prompt: |
+      Lock down ApiController#upload so that:
+      1. Only image files <=5MB are accepted
+      2. Files are stored outside the project tree
+      3. Previews return metadata instead of raw contents
+      4. Malicious uploads are rejected with clear errors
+    expected_patterns:
+      - "Files.createTempDirectory"
+      - "List.of(\"image/jpeg\", \"image/png\")"
+      - "MockMultipartFile"
+      - "ResponseEntity.status(HttpStatus.BAD_REQUEST)"
+    success_criteria:
+      - "Validation prevents script uploads"
+      - "Uploads cleaned up after tests"
+      - "Security tests cover failure paths"
+
+  - task_id: "JV-AUDIT-004"
+    description: "Introduce audit logging"
+    prompt: |
+      Implement a SecurityAuditLogger utility that:
+      1. Records login/logout/profile events with redacted fields
+      2. Supports structured JSON output
+      3. Integrates with AuthService and PageController
+      4. Exposes a governance report summarizing the last 20 events
+    expected_patterns:
+      - "ObjectMapper"
+      - "recordAuditEvent"
+      - "@Slf4j"
+      - "List<Map<String, Object>>"
+    success_criteria:
+      - "Sensitive values redacted"
+      - "Unit tests assert log content"
+      - "Governance docs reference audit trail"

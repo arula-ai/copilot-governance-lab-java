@@ -1,0 +1,21 @@
+# This is a CODEOWNERS file for enforcing code review requirements
+# Lines starting with '#' are comments
+# Each line is a file pattern followed by one or more owners
+
+# Global owners - will be requested for review on all PRs
+* @security-team @lead-developer
+
+# Security-sensitive files require additional review
+.github/copilot-instructions.md @security-team @architecture-team
+/pom.xml @architecture-team @devops-team
+/docs/ @training-team
+/evaluation/ @qa-team
+
+# Configuration files
+*.yml @devops-team
+*.json @lead-developer
+*.properties @devops-team
+
+# Source code
+/src/main/java/ @dev-team
+/src/main/resources/templates/ @frontend-team
