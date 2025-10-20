@@ -1,35 +1,37 @@
-# GitHub Copilot Governance Lab - Java
+# GitHub Copilot Governance Lab - Angular
 
-This repository now hosts an intentionally vulnerable Spring Boot application that mirrors the original Angular governance lab. The goal is unchanged: practice Copilot-assisted remediation while navigating security, documentation, and workflow guardrails. All risky behaviors from the Angular project (open redirects, unsafe storage, unsanitized templates, noisy logging) have been ported to Java on purpose so learners can discover and fix them.
+This repository contains an Angular project with intentionally vulnerable features for practicing GitHub Copilot governance end to end.
 
 **Prerequisites:**
-- Java 17+
-- Apache Maven 3.9+
-- GitHub Copilot-enabled IDE
+- Node.js 18+
+- Angular CLI 16+
+- IDE with GitHub Copilot extension
 - Git
 
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd copilot-governance-lab-java
+cd copilot-governance-lab-angular
 
 # Run setup script
 ./scripts/setup-lab.sh
 
 # Or manual setup
-mvn validate
+npm install
+npm install -g @angular/cli@16
 ```
 
 ## Quick Commands
 ```bash
 # Development
-mvn spring-boot:run        # Start dev server (http://localhost:8080)
-mvn test                   # Run unit tests
-mvn verify                 # Tests + Jacoco report
+npm start                 # Start dev server (http://localhost:4200)
+npm test                  # Run tests
+npm run test:coverage     # Run tests with coverage
 
 # Quality Checks
-./scripts/run-all-checks.sh   # Aggregated Maven checks
-./scripts/generate-report.sh  # Produce governance report
+npm run lint              # Run ESLint
+npm run lint:security     # Run security ESLint
+npm audit                 # Check vulnerabilities
 ```
 
 ## Lab Architecture
@@ -46,7 +48,7 @@ graph TB
     G --> H[Stage 3: Generate Security Tests]
     H --> I[Stage 4: Secure Enhancements]
     I --> J[Stage 5: Governance Review]
-
+    
     style A fill:#e1f5ff
     style B fill:#fff4e1
     style C fill:#e8f5e9
@@ -62,13 +64,13 @@ graph TB
 ## Governed Workflow Stages
 
 1. **Stage 0 – Prepare & Align**  
-   Review `.github/copilot-instructions.md`, `SECURITY.md`, `LAB_ACTION_GUIDE.md`, and `README.md`. Capture initial assumptions in `docs/workflow-tracker.md`.
+   Review `.github/copilot-instructions.md`, `SECURITY.md`, `README.md`, and `QUICK_START.md`. Capture initial assumptions in `docs/workflow-tracker.md`.
 2. **Stage 1 – Baseline Assessment**  
-   Audit the intentionally vulnerable Java classes under `src/main/java/com/github/copilot/governancelab` (see `docs/vulnerability-guide.md`) and record risks with OWASP mappings, saving your assessment to `docs/plans/stage1-plan.md`.
+   Audit the intentionally vulnerable components under `src/app/services/` and `src/app/components/` (see `docs/vulnerability-guide.md`) and record risks with OWASP mappings, saving your assessment to `docs/plans/stage1-plan.md`.
 3. **Stage 2 – Remediation with Copilot**  
-   Refactor the vulnerable controllers, services, and templates while following `docs/vulnerability-guide.md` and the tasks captured in `docs/plans/stage2-plan.md`.
+   Use Copilot-driven refactors directly in those component/service files (dropping the `.vulnerable` suffix once secure) while following `docs/vulnerability-guide.md` and the tasks captured in `docs/plans/stage2-plan.md`.
 4. **Stage 3 – Security Test Generation**  
-   Produce comprehensive JUnit coverage using the playbook in `docs/testing-guide.md` and the plan you capture in `docs/plans/stage3-plan.md`.
+   Produce comprehensive Jasmine/Karma coverage using the playbook in `docs/testing-guide.md` and the plan you capture in `docs/plans/stage3-plan.md`.
 5. **Stage 4 – Secure Feature Implementation**  
    Implement proactive security features following `docs/secure-features-guide.md` and `docs/plans/stage4-plan.md`.
 6. **Stage 5 – Governance Review & Reporting**  
@@ -79,65 +81,65 @@ See `docs/workflow-guide.md` for detailed tasks per stage.
 ## Running Analysis Tools
 
 ```bash
-# Unit tests
-mvn test
+# ESLint
+npm run lint
 
-# Full verification (includes Jacoco report)
-mvn verify
+# Security-focused ESLint
+npm run lint:security
 
-# Dependency insights
-mvn dependency:tree
+# Check for vulnerabilities
+npm audit
 
-# Aggregated governance checks
-./scripts/run-all-checks.sh
+# Run tests with coverage
+npm run test:coverage
+
+# Analyze bundle size
+npm run build -- --stats-json
+npm run analyze
 ```
 
 ## Project Structure
 ```
-├── src/main/java/com/github/copilot/governancelab/
-│   ├── controller/      # MVC & REST controllers (intentionally vulnerable)
-│   ├── model/           # Simple DTOs with exposed secrets
-│   ├── repository/      # Insecure storage mechanisms
-│   └── service/         # Authentication/business logic with risky patterns
-├── src/main/resources/
-│   ├── templates/       # Thymeleaf views using unsafe rendering
-│   └── static/          # Static assets (CSS/JS)
-├── docs/                # Governance plans, trackers, coverage logs, guides
-├── evaluation/          # Golden evaluation sets
-├── static-analysis/     # Analysis tool configs
-└── .github/             # GitHub-specific files
+├── src/app/
+│   ├── core/           # Core services, guards, interceptors
+│   ├── features/       # Feature modules
+│   └── shared/         # Shared components, models
+├── docs/                   # Governance plans, trackers, coverage logs, guides
+├── evaluation/         # Golden evaluation sets
+├── static-analysis/    # Analysis tool configs
+└── .github/           # GitHub-specific files
 ```
 
 ## Security Checklist
-- [ ] Tokens stored server-side securely (currently persisted to disk in plain text)
-- [ ] Templates escape untrusted content (`th:text` instead of `th:utext`)
-- [ ] Open redirects removed from login flow
-- [ ] Uploaded files validated and stored outside web root
-- [ ] Debug data hidden from unauthenticated users
-- [ ] Session cookies use `HttpOnly`, `Secure`, and `SameSite`
-- [ ] CSRF protection enforced on state-changing routes
-- [ ] Sensitive logging removed
-- [ ] Coverage ≥ 80% on high-risk flows
+- [ ] No sensitive data in localStorage
+- [ ] All inputs sanitized
+- [ ] JWT stored securely
+- [ ] Route guards implemented
+- [ ] XSS prevention active
+- [ ] CSRF protection enabled
+- [ ] No innerHTML with user content
+- [ ] Proper error handling
+- [ ] Memory leaks prevented
 
 ## Success Metrics
 Track these metrics as you implement governance:
 - Vulnerabilities detected: ___
 - Test coverage achieved: ___%
-- Build warnings remaining: ___
-- Dependency updates required: ___
-- Governance documentation updated (yes/no)
+- Bundle size: ___KB
+- ESLint warnings: ___
+- Accessibility score: ___
 
 ## Common Issues & Solutions
 
 | Issue | Solution |
 |-------|----------|
 | Copilot not following instructions | Ensure `.github/copilot-instructions.md` is committed |
-| Failure to start app | Confirm Java 17 & Maven 3.9 are installed |
-| Jacoco report missing | Run `mvn verify` before executing scripts |
-| Copilot auto-fixes vulnerabilities | Remind agents to preserve intentionally insecure patterns until the proper lab stage |
+| XSS vulnerabilities | Use DomSanitizer, avoid innerHTML |
+| Memory leaks | Unsubscribe from observables |
+| Large bundle size | Implement lazy loading |
 
 ## Additional Resources
-- [Spring Security Reference](https://docs.spring.io/spring-security/reference/)
-- [Spring Boot Documentation](https://docs.spring.io/spring-boot/docs/current/reference/html/)
-- [OWASP Java Secure Coding](https://cheatsheetseries.owasp.org/cheatsheets/Java_Security_Cheat_Sheet.html)
+- [Angular Security Guide](https://angular.io/guide/security)
+- [OWASP Angular Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Angular_Security_Cheat_Sheet.html)
+- [RxJS Best Practices](https://angular.io/guide/rx-library)
 - [GitHub Copilot Documentation](https://docs.github.com/copilot)

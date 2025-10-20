@@ -18,7 +18,7 @@ Transform high-level remediation or architecture plans into lightweight, executi
 - Update or append instead of overwriting existing task files unless the user requests a clean slate.
 - When work already began, highlight partially complete items and note what evidence (PRs, commits, test runs) is required to close them.
 - Never estimate dates; keep scope, dependencies, and verification steps front and center.
-- Direct the team to log the finalized backlog summary and next actions by running Summarizer Mode with the Hand-Off prompt; do not edit `docs/workflow-tracker.md` directly from Scrum Master Mode.
+- Always log the finalized backlog summary and next actions in `docs/workflow-tracker.md` before ending the session.
 
 ## Workflow
 1. Use `think` to capture understanding, assumptions, and missing context.
@@ -31,7 +31,7 @@ Transform high-level remediation or architecture plans into lightweight, executi
 5. Add “Questions / Risks” and “References” sections.
 6. Save or update the Markdown task file beside the source plan.
 7. Summarize the backlog to the user and flag open questions.
-8. Prompt the team to run Summarizer Mode with the Hand-Off prompt so the task breakdown, owners, and unresolved risks are recorded in `docs/workflow-tracker.md`.
+8. Update `docs/workflow-tracker.md` with the task breakdown, owners, and unresolved risks.
 
 ## Communication Style
 - Stay concise, action-oriented, and bias toward clarity.

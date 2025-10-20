@@ -1,156 +1,202 @@
 # Stage 3 – Generate Security Tests with GitHub Copilot
 
 ## Objective
-Use GitHub Copilot to generate comprehensive JUnit-based security tests for the vulnerable Spring Boot components.
+Use GitHub Copilot to generate comprehensive security tests for your fixed components.
 
 ## Prerequisites
 - Completed Stage 2 (remediated vulnerable components)
-- Fixed classes build successfully with `mvn verify`
-- Familiarity with JUnit 5, Spring Boot test slices, and MockMvc
+- Fixed components are passing ESLint checks
+- Understanding of Jasmine and Karma testing
 
 ## Instructions
 
 ### Plan Before Generating Tests
 
-- Use GitHub Copilot Chat with **Plan Mode** (see `.github/chatmodes/planning.chatmode.md`) to review the fixed classes, existing tests, and repository quality gates.
-- Draft a Markdown plan saved to `docs/plans/stage3-plan.md` that lists the security behaviors to cover, targeted test classes, fixtures/mocks required, and verification commands (Jacoco, dependency checks).
-- Document how you will record coverage and any remaining risks in `docs/test-coverage.md`. Only begin coding after the plan is captured.
+- Use GitHub Copilot Chat with **Plan Mode** (see `.github/chatmodes/planning.chatmode.md`) to review the fixed components, existing tests, and repository quality gates.
+- Draft a Markdown plan saved to `docs/plans/stage3-plan.md` (or similar) that lists the security behaviors to cover, targeted spec files, fixtures/mocks required, and verification commands (coverage, linting).
+- Call out in the plan how you will document test coverage and any remaining risks. Only begin writing or generating tests after this plan is saved.
 
-### Step 1: AuthService Tests
+### Step 1: Generate AuthService Tests
 
-Create or update `src/test/java/com/github/copilot/governancelab/service/AuthServiceTest.java` with this prompt:
-
-**Prompt:**
-```
-Following our team instructions, generate JUnit tests for AuthService that:
-1. Cover login success and failure flows
-2. Detect that passwords are Base64 encoded in the response
-3. Verify tokens are stored via InsecureSessionRepository
-4. Assert logout leaves artifacts on disk (document as risk)
-5. Highlight logging of sensitive data (assert log capture)
-6. Achieve at least 60% coverage for the service
-```
-
-**Required Test Ideas:**
-- Login returns predictable token format
-- Encoded password matches Base64 of plaintext
-- Session repository contains saved token
-- Logout fails to wipe disk artifacts (documented risk)
-- Debug dump exposes usernames
-
-### Step 2: ApiController Tests
-
-Create or update `src/test/java/com/github/copilot/governancelab/controller/ApiControllerTest.java` using Spring's MockMvc with this prompt:
+Create or update `src/app/services/auth.service.spec.ts` and use this prompt with Copilot:
 
 **Prompt:**
 ```
-Generate MockMvc tests for ApiController that:
-1. Assert /api/login sets cookies without HttpOnly/SameSite
-2. Ensure response headers leak token and encoded password
-3. Demonstrate that tokens can be passed via query parameters
-4. Upload a file and confirm raw preview is returned
-5. Expose that debug endpoint leaks session metadata
-6. Cover error handling when token is missing
+Following our team instructions, generate comprehensive Jasmine tests for AuthService that:
+1. Test the login method with mock HttpClient
+2. Verify no sensitive data is stored in localStorage
+3. Test the logout method clears all data
+4. Test error handling scenarios
+5. Verify proper TypeScript types
+6. Use HttpTestingController for HTTP mocking
+7. Achieve >80% code coverage
 ```
 
-**Required Test Ideas:**
-- POST `/api/login` returns 200 with insecure cookie attributes
-- GET `/api/user?token=...` returns sensitive profile data
-- PUT `/api/profile` updates bio with unsanitized HTML
-- POST `/api/upload` stores file under `target/uploads`
-- GET `/api/debug/sessions` exposes active tokens
+**Required Test Cases:**
+- Should be created
+- Login should call HTTP POST with credentials
+- Login should handle successful response
+- Login should handle error response
+- Should not store passwords in localStorage
+- Logout should clear all authentication data
+- isAuthenticated should return correct status
+- Should handle network errors gracefully
 
-### Step 3: PageController & Template Tests
+### Step 2: Generate LoginComponent Tests
 
-Create or update `src/test/java/com/github/copilot/governancelab/controller/PageControllerTest.java` with a focus on MVC rendering:
+Create or update `src/app/components/login/login.component.spec.ts` with this prompt:
 
 **Prompt:**
 ```
-Write Spring MVC tests for PageController that:
-1. Show open redirect behaviour when returnUrl is supplied
-2. Confirm dashboard exposes API key, session ID, and passwords
-3. Assert the model contains debug/system info
-4. Demonstrate lack of CSRF protection on /profile POST
-5. Cover session fixation risk (token reused)
+Following our team instructions, generate Jasmine tests for LoginComponent that:
+1. Use TestBed for component testing
+2. Test form validation
+3. Verify XSS prevention (no innerHTML with user data)
+4. Test redirect URL validation
+5. Test error message display (without exposing details)
+6. Test accessibility (ARIA labels)
+7. Mock AuthService and Router
 ```
 
-**Required Test Ideas:**
-- POST `/login?returnUrl=http://evil.example` redirects externally
-- GET `/dashboard` without session redirects back to login with error
-- GET `/dashboard` model attributes include `plainPassword`
-- POST `/profile` succeeds without CSRF token and updates bio
-- Rendered HTML contains `th:utext` output (use HtmlUnit or string assertions)
+**Required Test Cases:**
+- Should create the component
+- Form should be invalid when empty
+- Should validate email format
+- Should validate password requirements
+- Should prevent XSS in error messages
+- Should validate redirect URLs
+- Should call AuthService.login on submit
+- Should have proper ARIA labels
+- Should navigate on successful login
+
+### Step 3: Generate UserProfileComponent Tests
+
+Create or update `src/app/components/user-profile/user-profile.component.spec.ts` with this prompt:
+
+**Prompt:**
+```
+Following our team instructions, generate Jasmine tests for UserProfileComponent that:
+1. Test component lifecycle (ngOnInit, ngOnDestroy)
+2. Verify no memory leaks (proper cleanup)
+3. Test DomSanitizer usage for user content
+4. Test file upload validation
+5. Mock HttpClient calls
+6. Verify no sensitive data in template
+7. Test error handling
+```
+
+**Required Test Cases:**
+- Should create the component
+- Should sanitize user-generated content
+- Should cleanup subscriptions on destroy
+- Should validate file type on upload
+- Should validate file size on upload
+- Should handle HTTP errors gracefully
+- Should not display sensitive data (API keys)
+- Should use Renderer2 for DOM manipulation
 
 ## Running Tests
 
 ### Run All Tests
 ```bash
-mvn test
+npm test
 ```
 
-### Run with Coverage
+### Run Tests with Coverage
 ```bash
-mvn verify
-open target/site/jacoco/index.html
+npm run test:coverage
 ```
 
-### Optional Targeted Runs
+### Check Coverage Report
 ```bash
-mvn -Dtest=AuthServiceTest test
+open coverage/copilot-governance-lab-angular/index.html
 ```
 
 ## Success Criteria
 
 ### Coverage Targets
-- [ ] Overall instruction coverage ≥ 60%
-- [ ] Service layer coverage ≥ 60%
-- [ ] Controller tests exercise insecure paths and document risks
+- [ ] Statements: ≥ 80%
+- [ ] Branches: ≥ 80%
+- [ ] Functions: ≥ 80%
+- [ ] Lines: ≥ 80%
 
 ### Quality Checks
 - [ ] All tests passing
-- [ ] No skipped tests (`@Disabled`)
-- [ ] Tests clearly label intentional vulnerabilities in comments or assertion messages
-- [ ] MockMvc used for controller routes
-- [ ] Temporary files cleaned up in tests where applicable
+- [ ] No skipped tests (no `xit` or `xdescribe`)
+- [ ] Tests follow AAA pattern (Arrange, Act, Assert)
+- [ ] Proper use of beforeEach/afterEach
+- [ ] All HTTP calls mocked
+- [ ] No actual DOM manipulation in tests
 
 ### Security Test Coverage
-- [ ] Token leakage explicitly asserted
-- [ ] XSS vectors captured (bio rendered as HTML)
-- [ ] File upload acceptance documented
-- [ ] Cookie insecurity highlighted
-- [ ] Logging/monitoring gaps noted
+- [ ] XSS prevention tested
+- [ ] Input validation tested
+- [ ] Error handling tested
+- [ ] Data sanitization tested
+- [ ] Memory leak prevention tested
+- [ ] Access control tested
 
 ## Test Structure Example
 
-```java
-@Test
-void loginExposesEncodedPassword() {
-    AuthResponse response = authService.login("demo", "Password123", "JUnit");
-    assertThat(response.getEncodedPassword())
-        .isEqualTo(Base64.getEncoder().encodeToString("Password123".getBytes()));
-}
+```typescript
+describe('AuthService', () => {
+  let service: AuthService;
+  let httpMock: HttpTestingController;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule],
+      providers: [AuthService]
+    });
+    service = TestBed.inject(AuthService);
+    httpMock = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => {
+    httpMock.verify();
+  });
+
+  it('should be created', () => {
+    expect(service).toBeTruthy();
+  });
+
+  it('should not store password in localStorage', () => {
+    // Arrange
+    const credentials = { username: 'test', password: 'secret' };
+    
+    // Act
+    service.login(credentials.username, credentials.password).subscribe();
+    const req = httpMock.expectOne('/api/login');
+    req.flush({ token: 'abc123' });
+    
+    // Assert
+    expect(localStorage.getItem('pwd')).toBeNull();
+    expect(localStorage.getItem('password')).toBeNull();
+  });
+});
 ```
 
 ## Tips for Test Generation
 
-1. **Be Explicit:** Tell Copilot which unsafe behaviors you want to expose.
-2. **Annotate Findings:** Use assertion messages or comments to record observed risks for auditors.
-3. **Use Utilities:** Rely on MockMvc, `@WebMvcTest`, or `@SpringBootTest` depending on scope.
-4. **Iterate:** Start with happy path tests, then add failure and abuse-case coverage.
-5. **Log Evidence:** Update `docs/test-coverage.md` with command output and coverage percentages after each run.
+1. **Be Specific:** Tell Copilot about security concerns to test
+2. **Reference Standards:** Mention team instructions and coverage requirements
+3. **Iterate:** Generate basic tests first, then add security-specific tests
+4. **Review:** Verify that generated tests actually test the right things
+5. **Run Frequently:** Run tests after each generation to catch issues early
 
 ## Common Issues and Solutions
 
 | Issue | Solution |
 |-------|----------|
-| Missing Jacoco report | Run `mvn verify` before parsing coverage |
-| Multipart upload fails | Include `MockMultipartFile` in tests |
-| External redirect blocked | Use `andExpect(redirectedUrlPattern("http*"))` |
-| Session attributes missing | Simulate login via MockMvc before hitting `/dashboard` |
-| Tests pollute disk | Clean `target/uploads` or use JUnit `@TempDir` |
+| Tests timeout | Use `fakeAsync` and `tick()` for async operations |
+| HTTP calls not mocked | Use `HttpTestingController` |
+| Component not rendering | Check `fixture.detectChanges()` is called |
+| Coverage too low | Use Istanbul/nyc coverage reports to find gaps |
+| Flaky tests | Avoid `setTimeout`, use `fakeAsync` instead |
 
 ## Next Steps
-After reaching the coverage targets:
-1. Review Jacoco report for gaps in high-risk classes.
-2. Extend tests to cover regression scenarios and negative paths.
-3. Update `docs/test-coverage.md` with final results and residual risks.
+After achieving >80% coverage:
+1. Review coverage report for gaps
+2. Add edge case tests
+3. Document security test patterns and outcomes in `docs/test-coverage.md` and `docs/workflow-tracker.md`
+4. Proceed to Stage 4 (implement new secure features using `docs/secure-features-guide.md`)

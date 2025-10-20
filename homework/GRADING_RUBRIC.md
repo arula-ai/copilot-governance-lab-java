@@ -252,8 +252,8 @@ As above
 - [ ] `VULNERABILITIES.md` (comprehensive list with details)
 - [ ] `FIXES.md` (explanations of all fixes)
 - [ ] `COPILOT_USAGE.md` (AI usage documentation)
-- [ ] Security tests (JUnit/MockMvc classes under `src/test/java`)
-- [ ] All tests passing (`mvn test`)
+- [ ] Security tests (*.spec.ts files)
+- [ ] All tests passing (npm test)
 
 ---
 
@@ -300,7 +300,7 @@ Evaluated across all challenges:
 - Inadequate documentation
 
 ### Minor Deductions (-1 pt each):
-- Maven warnings or Checkstyle violations
+- ESLint errors
 - Missing comments on complex fixes
 - Inconsistent code style
 - Minor test gaps
@@ -324,9 +324,10 @@ Evaluated across all challenges:
 
 ### Step 1: Automated Checks (30 pts possible)
 ```bash
-mvn clean verify
-./scripts/run-all-checks.sh
-./scripts/generate-report.sh
+npm install
+npm run lint           # Must pass
+npm run test:security  # Must have 80%+ coverage
+npm audit              # No high/critical issues
 ```
 
 ### Step 2: Manual Review (70 pts possible)

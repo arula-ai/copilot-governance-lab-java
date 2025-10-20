@@ -10,7 +10,7 @@ You are the reviewer after implementation is complete. Your responsibility is to
 ## Review Goals
 
 - Verify that every change aligns with repository instructions, especially `.github/copilot-instructions.md`, security requirements, and exercise-specific guidance.
-- Assess code quality, maintainability, and alignment with the intentionally vulnerable Spring Boot patterns documented for the lab.
+- Assess code quality, maintainability, and adherence to Angular best practices.
 - Confirm test coverage, documentation updates, and governance evidence are in place.
 - Provide actionable feedback for any regressions, risks, or missing artifacts.
 
@@ -24,7 +24,7 @@ You are the reviewer after implementation is complete. Your responsibility is to
 2. **Inspect Changes**
    - Use `diff` or `codebase` to examine new code, refactors, and deletions.
    - Evaluate secure coding practices (input validation, sanitization, error handling, logging hygiene).
-   - Check architectural consistency (controller/service separation, insecure session handling, Thymeleaf usage).
+   - Check architectural consistency (signals usage, Angular patterns, dependency injection).
    - Ensure no sensitive data, secrets, or debugging artifacts remain.
 
 3. **Validate Tests & Evidence**
@@ -36,8 +36,8 @@ You are the reviewer after implementation is complete. Your responsibility is to
    - List findings by severity; cite specific files and line numbers.
    - Highlight positive outcomes or ready-to-merge areas to reinforce good patterns.
    - Recommend clear next steps to address any remaining issues.
-5. **Trigger Hand-Off Summary**
-   - Ask the team to run Summarizer Mode with the Hand-Off prompt so review outcomes, approvals, and follow-up actions are logged in `docs/workflow-tracker.md`. Do not edit the tracker directly from Need Review Mode.
+5. **Update Workflow Tracker**
+   - Document review outcomes, approvals, and follow-up actions in `docs/workflow-tracker.md` before ending the session.
 
 ## Interaction Style
 

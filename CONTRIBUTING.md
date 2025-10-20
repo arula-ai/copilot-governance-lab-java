@@ -1,65 +1,64 @@
 # Contributing to Copilot Governance Lab
 
-Thank you for your interest in contributing to the Copilot Governance Lab (Java edition)!
+Thank you for your interest in contributing to the Copilot Governance Lab for Angular!
 
 ## Getting Started
 
-1. Fork the repository.
-2. Clone your fork locally.
-3. Run `./scripts/setup-lab.sh` to verify prerequisites.
-4. Create a new branch for your changes.
+1. Fork the repository
+2. Clone your fork locally
+3. Run `./scripts/setup-lab.sh` to set up dependencies
+4. Create a new branch for your changes
 
 ## Development Workflow
 
 ### Before Making Changes
-1. Review `.github/copilot-instructions.md` for coding standards.
-2. Ensure your IDE has GitHub Copilot enabled.
-3. Pull the latest changes from `main`.
-4. Read the relevant guides in `docs/` for the stage you are working on.
+1. Review `.github/copilot-instructions.md` for coding standards
+2. Ensure your IDE has GitHub Copilot enabled
+3. Pull the latest changes from main
 
 ### Making Changes
-1. Follow the team instructions in `.github/copilot-instructions.md`.
-2. Write or update unit/integration tests.
-3. Ensure all tests pass: `mvn test`.
-4. Run full verification: `mvn verify`.
-5. Execute governance scripts: `./scripts/run-all-checks.sh`.
-6. Capture coverage results in `docs/test-coverage.md` when applicable.
+1. Follow the team instructions in `.github/copilot-instructions.md`
+2. Write tests for new functionality
+3. Ensure all tests pass: `npm test`
+4. Run linting: `npm run lint && npm run lint:security`
+5. Check test coverage: `npm run test:coverage`
 
 ### Using GitHub Copilot
-- Always reference team instructions when prompting Copilot.
-- Review all generated code carefully.
-- Verify that generated code aligns with Spring Boot patterns and preserves intentional lab vulnerabilities when required.
-- Ensure generated tests meaningfully assert security behaviors.
-- Never commit secrets or credentials.
+- Always reference team instructions when prompting Copilot
+- Review all generated code carefully
+- Verify that generated code follows Angular best practices
+- Ensure generated tests actually test the functionality
+- Never commit secrets or API keys
 
 ## Pull Request Process
 
-1. Update documentation for any changed functionality.
-2. Fill out the PR template completely.
-3. Declare Copilot usage percentage.
-4. Ensure all CI checks pass.
-5. Request review from appropriate team members.
+1. Update documentation for any changed functionality
+2. Fill out the PR template completely
+3. Declare Copilot usage percentage
+4. Ensure all CI checks pass
+5. Request review from appropriate team members
 
 ### PR Checklist
-- [ ] Code follows team instructions and lab guardrails
-- [ ] Tests written/updated (coverage ≥60% or documented exception)
-- [ ] `mvn verify` passing
-- [ ] `./scripts/run-all-checks.sh` executed
-- [ ] Documentation updated (README, guides, trackers)
-- [ ] No sensitive data logged or stored
+- [ ] Code follows team instructions
+- [ ] Tests written and passing (≥80% coverage)
+- [ ] ESLint passing (no warnings)
+- [ ] Security scan passing
+- [ ] Documentation updated
+- [ ] No console.log statements
+- [ ] No sensitive data exposed
 
 ## Code Review Guidelines
 
 ### As a Reviewer
 - Verify Copilot-generated code is appropriate
-- Check for security regressions or missing mitigations
-- Ensure tests are comprehensive and document residual risks
-- Validate Spring Boot and Java best practices
-- Provide constructive, actionable feedback
+- Check for security vulnerabilities
+- Ensure tests are comprehensive
+- Validate Angular best practices
+- Provide constructive feedback
 
 ### As an Author
 - Respond to feedback promptly
-- Explain Copilot usage decisions when asked
+- Explain Copilot usage decisions
 - Update code based on review comments
 - Re-request review after changes
 
@@ -68,45 +67,46 @@ Thank you for your interest in contributing to the Copilot Governance Lab (Java 
 ### Reporting Vulnerabilities
 - Do not open public issues for security vulnerabilities
 - Email security@example.com with details
-- Include reproduction steps
+- Include steps to reproduce
 - Allow time for patch before disclosure
 
 ### Security Standards
-- All PRs must execute `mvn verify`
-- Governance scripts must succeed unless a documented risk is accepted
-- No sensitive data in source code or commits
-- Follow OWASP Top 10 guidance for Java web apps
+- All PRs must pass security ESLint checks
+- npm audit must show no high/critical vulnerabilities
+- No sensitive data in code or commits
+- Follow OWASP Top 10 guidelines
 
 ## Testing
 
 ### Test Requirements
-- All new code must have unit or integration tests
-- Minimum 60% Jacoco coverage overall (with higher targets for remediated modules)
-- Tests must verify both secure behavior and intentional weaknesses
-- Use meaningful test names and assertion messages
-- Mock external resources (file system, network) when appropriate
+- All new code must have tests
+- Minimum 80% coverage required
+- Tests must actually verify functionality
+- Use meaningful test descriptions
+- Mock external dependencies
 
 ### Running Tests
 ```bash
-mvn test                # Run unit tests
-mvn verify              # Tests + Jacoco report
-mvn -Dtest=ClassName test  # Run targeted tests
+npm test                 # Run tests in watch mode
+npm run test:headless    # Run tests once
+npm run test:coverage    # Generate coverage report
 ```
 
 ## Documentation
 
 ### What to Document
-- New features and services
-- Security considerations and residual risks
-- Usage examples for controllers/services/templates
-- Breaking changes and migration guidance
+- New features and components
+- Security considerations
+- Usage examples
+- Breaking changes
+- Migration guides
 
 ### Documentation Standards
 - Use clear, concise language
-- Include code snippets where helpful
-- Keep `README.md` and `docs/` guides current
-- Document public APIs and endpoints
-- Add inline comments for complex logic sparingly
+- Include code examples
+- Keep README.md up to date
+- Document public APIs
+- Add inline comments for complex logic
 
 ## Commit Messages
 
@@ -128,35 +128,38 @@ mvn -Dtest=ClassName test  # Run targeted tests
 - `test`: Adding tests
 - `chore`: Maintenance
 
-### Example
+### Examples
 ```
-fix(auth): remove plaintext password logging
+feat(auth): add JWT interceptor with refresh token logic
 
-Replaces System.out logging with structured audit logger
-and adds tests documenting the previous behavior.
+Implements token refresh mechanism to automatically
+renew expired tokens without requiring user re-login.
+
+Follows team security guidelines in copilot-instructions.md
 ```
 
 ## Code Style
 
-### Java
-- Use Java 17 features where appropriate
-- Prefer constructor injection
-- Keep classes focused and cohesive
-- Use descriptive names for methods and variables
-- Avoid catching generic `Exception` unless documenting the risk
+### TypeScript
+- Use strict TypeScript settings
+- Avoid `any` type without justification
+- Prefer interfaces over types for objects
+- Use meaningful variable names
+- Follow Angular naming conventions
 
-### Spring Boot
-- Separate controllers, services, and repositories
-- Return DTOs instead of entities from controllers
-- Log securely (redact secrets, use structured logging)
-- Externalize configuration in `application.properties`
-- Preserve intentional vulnerabilities only when required by the lab stage
+### Angular
+- One component per file
+- Use OnPush change detection when possible
+- Implement proper lifecycle hooks
+- Unsubscribe from observables
+- Use reactive forms for complex forms
 
 ### Testing
-- Use JUnit 5 and AssertJ/MockMvc helpers
-- Follow Arrange/Act/Assert pattern
-- Provide assertion messages documenting security expectations
-- Clean up temporary files and resources
+- Use AAA pattern (Arrange, Act, Assert)
+- One assertion per test when possible
+- Use descriptive test names
+- Mock external dependencies
+- Test both success and error paths
 
 ## Questions?
 

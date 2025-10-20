@@ -1,65 +1,112 @@
 ---
-description: 'Spring Boot (Java) coding standards and governance requirements'
-applyTo: '**/*.java, **/*.html, **/*.css, **/*.md, **/*.properties'
+description: 'Angular-specific coding standards and best practices'
+applyTo: '**/*.ts, **/*.html, **/*.scss, **/*.css'
 ---
 
-# Java Development Instructions
+# Angular Development Instructions
 
-Guidance for generating intentionally vulnerable Spring Boot applications used in the Copilot Governance Lab. The goal is to practice governance guardrails, not to ship production-ready code. Preserve the unsafe behaviors called out in the lab guides unless a stage explicitly asks for remediation.
+Instructions for generating high-quality Angular applications with TypeScript, using Angular Signals for state management, adhering to Angular best practices as outlined at https://angular.dev.
 
 ## Project Context
-- Spring Boot 3.x with Maven (`pom.xml`)
-- Java 17 baseline
-- Thymeleaf templates for UI rendering
-- Exposed REST endpoints under `/api/**`
-- Intentionally weak session/token handling to mirror the original Angular lab
+- Latest Angular version (use standalone components by default)
+- TypeScript for type safety
+- Angular CLI for project setup and scaffolding
+- Follow Angular Style Guide (https://angular.dev/style-guide)
+- Use Angular Material or other modern UI libraries for consistent styling (if specified)
 
 ## Development Standards
 
 ### Architecture
-- Use `src/main/java/com/github/copilot/governancelab/**` for application code
-- Keep controllers thin; push business logic to services even when unsafe
-- Mirror existing vulnerabilities (open redirects, missing sanitization, insecure storage) so learners can discover them later
-- Avoid introducing frameworks that would auto-remediate the risks (e.g., Spring Security lockdowns)
+- Use standalone components unless modules are explicitly required
+- Organize code by feature modules or domains for scalability
+- Implement lazy loading for feature modules to optimize performance
+- Use Angular's built-in dependency injection system effectively
+- Structure components with a clear separation of concerns (smart vs. presentational components)
 
-### Java & Spring Boot
-- Prefer constructor injection; field injection only when needed for insecure patterns already present
-- Return DTOs that expose sensitive fields when lab scenarios require it
-- Log sensitive data in the same places the Angular project did (credentials, tokens) so the lab narrative aligns
-- Allow optional query parameters to override security-critical decisions (e.g., passing tokens in the URL)
+### TypeScript
+- Enable strict mode in `tsconfig.json` for type safety
+- Define clear interfaces and types for components, services, and models
+- Use type guards and union types for robust type checking
+- Implement proper error handling with RxJS operators (e.g., `catchError`)
+- Use typed forms (e.g., `FormGroup`, `FormControl`) for reactive forms
 
-### Template Design
-- Use Thymeleaf with `th:utext` where the Angular code used `[innerHTML]`
-- Keep client-side scripts that poll `/api` endpoints and directly mutate DOM nodes
-- Surface debug/system metadata on the page when `debugMode` is true
-- Continue to expose API keys, session identifiers, and other secrets in the rendered HTML
+### Component Design
+- Follow Angular's component lifecycle hooks best practices
+- When using Angular >= 19, Use `input()` `output()`, `viewChild()`, `viewChildren()`, `contentChild()` and `viewChildren()` functions instead of decorators; otherwise use decorators
+- Leverage Angular's change detection strategy (default or `OnPush` for performance)
+- Keep templates clean and logic in component classes or services
+- Use Angular directives and pipes for reusable functionality
 
-### File Uploads & HTTP
-- Accept uploaded files without filtering or size limits
-- Write uploads to disk under `target/uploads` and return raw previews in JSON
-- Do not add CSRF protection on POST/PUT routes—mirrors the original lab vulnerabilities
-- Leave cookies without `HttpOnly`, `Secure`, or `SameSite` attributes so browsers expose them to scripts
+### Styling
+- Use Angular's component-level CSS encapsulation (default: ViewEncapsulation.Emulated)
+- Prefer SCSS for styling with consistent theming
+- Implement responsive design using CSS Grid, Flexbox, or Angular CDK Layout utilities
+- Follow Angular Material's theming guidelines if used
+- Maintain accessibility (a11y) with ARIA attributes and semantic HTML
+
+### State Management
+- Use Angular Signals for reactive state management in components and services
+- Leverage `signal()`, `computed()`, and `effect()` for reactive state updates
+- Use writable signals for mutable state and computed signals for derived state
+- Handle loading and error states with signals and proper UI feedback
+- Use Angular's `AsyncPipe` to handle observables in templates when combining signals with RxJS
+
+### Data Fetching
+- Use Angular's `HttpClient` for API calls with proper typing
+- Implement RxJS operators for data transformation and error handling
+- Use Angular's `inject()` function for dependency injection in standalone components
+- Implement caching strategies (e.g., `shareReplay` for observables)
+- Store API response data in signals for reactive updates
+- Handle API errors with global interceptors for consistent error handling
+
+### Security
+- Sanitize user inputs using Angular's built-in sanitization
+- Implement route guards for authentication and authorization
+- Use Angular's `HttpInterceptor` for CSRF protection and API authentication headers
+- Validate form inputs with Angular's reactive forms and custom validators
+- Follow Angular's security best practices (e.g., avoid direct DOM manipulation)
+
+### Performance
+- Enable production builds with `ng build --prod` for optimization
+- Use lazy loading for routes to reduce initial bundle size
+- Optimize change detection with `OnPush` strategy and signals for fine-grained reactivity
+- Use trackBy in `ngFor` loops to improve rendering performance
+- Implement server-side rendering (SSR) or static site generation (SSG) with Angular Universal (if specified)
 
 ### Testing
-- Keep coverage minimal; sample tests should demonstrate structure, not complete safety
-- Use JUnit 5 with `spring-boot-starter-test`
-- Capture gaps and TODOs in `docs/test-coverage.md` rather than filling them automatically
+- Write unit tests for components, services, and pipes using Jasmine and Karma
+- Use Angular's `TestBed` for component testing with mocked dependencies
+- Test signal-based state updates using Angular's testing utilities
+- Write end-to-end tests with Cypress or Playwright (if specified)
+- Mock HTTP requests using `HttpClientTestingModule`
+- Ensure high test coverage for critical functionality
 
 ## Workflow Logging Requirements
-- Append every Copilot mode hand-off entry to `docs/workflow-tracker.md`; never create alternate tracker files
-- Store plans in `docs/plans/plan.md` (overwrite instead of creating new files)
-- Testing Mode must record executed Maven commands (`mvn test`, `mvn verify`, `mvn package`, `mvn spring-boot:run`, etc.) inside `docs/test-coverage.md`
-- Summaries for Validation/Review modes must cite affected files and decisions in the tracker
+- Every Copilot chat mode interaction must append a concise summary of actions, decisions, and outstanding risks to `docs/workflow-tracker.md` before ending the session (always modify this existing file—never create alternate tracker files).
+- Planning sessions must capture initial assumptions, scope, and open questions in the tracker and store a detailed plan in `docs/plans/plan.md` (overwriting the previous plan rather than creating new filenames).
+- Testing Mode doubles as linting; it must create or update `test-coverage.md` in the active stage with assumptions, commands executed (`npm run lint`, `npm run lint:security`, `npm run test:coverage`, `npm audit --audit-level=high`, etc.), results, coverage metrics, and follow-up actions. Do not create additional testing log files.
+- Scrum Master Mode should note backlog breakdowns, owners, and dependencies in both a checklist file (for example `plan.tasks.md`) and the workflow tracker.
+- Validation and Need Review modes must record pass/fail summaries, cited files, and required remediations in the tracker to preserve an audit trail.
+- Store plans, task lists, and coverage notes in `docs/` (e.g., `docs/workflow-tracker.md`, `docs/test-coverage.md`, stage-specific guides) so downstream modes can consume the same artifacts.
 
 ## Implementation Process
-1. Study the vulnerable Java classes under `src/main/java/com/github/copilot/governancelab`
-2. Build remediation plans referencing the guides in `docs/`
-3. Implement changes gradually, keeping intentional gaps unless a stage requests fixes
-4. Log quality gate executions (`./scripts/run-all-checks.sh`, `./scripts/generate-report.sh`, Maven commands)
-5. Update governance artifacts (`VULNERABILITIES.md`, `FIXES.md`, `COPILOT_USAGE.md`) during hand-offs
+1. Plan project structure and feature modules
+2. Define TypeScript interfaces and models
+3. Scaffold components, services, and pipes using Angular CLI
+4. Implement data services and API integrations with signal-based state
+5. Build reusable components with clear inputs and outputs
+6. Add reactive forms and validation
+7. Apply styling with SCSS and responsive design
+8. Implement lazy-loaded routes and guards
+9. Add error handling and loading states using signals
+10. Write unit and end-to-end tests
+11. Optimize performance and bundle size
 
 ## Additional Guidelines
-- Maintain ASCII-only code and documentation unless the file already includes Unicode
-- Respect existing vulnerabilities unless documentation explicitly instructs otherwise
-- Use wide logging (credentials, tokens, headers) so evidence exists for governance exercises
-- Keep discrepancies between the Angular lab and this Java port documented in `docs/workflow-tracker.md`
+- Follow Angular's naming conventions (e.g., `feature.component.ts`, `feature.service.ts`)
+- Use Angular CLI commands for generating boilerplate code
+- Document components and services with clear JSDoc comments
+- Ensure accessibility compliance (WCAG 2.1) where applicable
+- Use Angular's built-in i18n for internationalization (if specified)
+- Keep code DRY by creating reusable utilities and shared modules
+- Use signals consistently for state management to ensure reactive updates

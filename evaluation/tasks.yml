@@ -1,81 +1,90 @@
 evaluation_tasks:
-  - task_id: "JV-SEC-001"
-    description: "Harden AuthService token handling"
+  - task_id: "NG-SEC-001"
+    description: "Implement secure JWT interceptor"
     prompt: |
       Following our team instructions in .github/copilot-instructions.md,
-      refactor AuthService so that:
-      1. Tokens are random and not derived from usernames
-      2. Passwords are never written to disk or logs
-      3. Logout removes all persisted credentials
-      4. Session debug dumps are protected behind an admin check
+      create an HTTP interceptor that:
+      1. Adds JWT token to requests
+      2. Handles token refresh
+      3. Catches 401 responses
+      4. Implements retry logic
     expected_patterns:
-      - "SecureRandom"
-      - "HttpOnly cookie"
-      - "logger.info"
-      - "Optional<User>"
+      - "implements HttpInterceptor"
+      - "Bearer token in Authorization header"
+      - "catchError operator"
+      - "retry logic"
+      - "token refresh handling"
     anti_patterns:
-      - "System.out.printf"
-      - "Base64.getEncoder()"
-      - "new FileWriter"
+      - "localStorage for token"
+      - "console.log"
+      - "any type without justification"
     success_criteria:
-      - "No credential logging"
-      - "Tokens cannot be predicted"
-      - "Session store cleared on logout"
-      - "Debug endpoint gated by authorization"
+      - "Attaches token correctly"
+      - "Handles 401 responses"
+      - "Refreshes expired tokens"
+      - "No token on public routes"
+      - "Proper error handling"
 
-  - task_id: "JV-XSS-002"
-    description: "Sanitize dashboard rendering"
+  - task_id: "NG-FORM-002"
+    description: "Create secure form with validation"
     prompt: |
-      Create a sanitization helper and update dashboard.html so that:
-      1. User bios are escaped by default
-      2. Only a safe HTML allowlist is permitted
-      3. Scripts and inline event handlers are stripped
-      4. Tests demonstrate sanitized vs. unsanitized content
+      Create a registration form component that:
+      1. Uses reactive forms
+      2. Implements custom validators
+      3. Sanitizes inputs
+      4. Prevents XSS
+      5. Shows validation errors
     expected_patterns:
-      - "policyFactory"
-      - "th:text"
-      - "HtmlPolicyBuilder"
-      - "MockMvc"
+      - "FormBuilder"
+      - "Validators.required"
+      - "Custom validator functions"
+      - "DomSanitizer"
+      - "Error messages in template"
     anti_patterns:
-      - "th:utext"
-      - "innerHTML"
+      - "innerHTML with user data"
+      - "eval or Function"
+      - "Direct DOM manipulation"
     success_criteria:
-      - "Dangerous input removed"
-      - "Regression tests present"
-      - "Documentation updated"
+      - "Prevents XSS attacks"
+      - "Validates all fields"
+      - "Accessible error messages"
+      - "Type-safe form controls"
 
-  - task_id: "JV-UPLOAD-003"
-    description: "Secure file upload endpoint"
+  - task_id: "NG-GUARD-003"
+    description: "Implement role-based route guard"
     prompt: |
-      Lock down ApiController#upload so that:
-      1. Only image files <=5MB are accepted
-      2. Files are stored outside the project tree
-      3. Previews return metadata instead of raw contents
-      4. Malicious uploads are rejected with clear errors
+      Create a route guard that:
+      1. Checks user authentication
+      2. Verifies roles from server
+      3. Redirects unauthorized users
+      4. Caches role checks
     expected_patterns:
-      - "Files.createTempDirectory"
-      - "List.of(\"image/jpeg\", \"image/png\")"
-      - "MockMultipartFile"
-      - "ResponseEntity.status(HttpStatus.BAD_REQUEST)"
+      - "implements CanActivate"
+      - "Observable<boolean>"
+      - "Router injection"
+      - "AuthService usage"
+      - "Server-side verification"
     success_criteria:
-      - "Validation prevents script uploads"
-      - "Uploads cleaned up after tests"
-      - "Security tests cover failure paths"
+      - "Blocks unauthorized access"
+      - "Server-side role check"
+      - "Proper redirect logic"
+      - "Handles async operations"
 
-  - task_id: "JV-AUDIT-004"
-    description: "Introduce audit logging"
+  - task_id: "NG-TEST-004"
+    description: "Generate comprehensive security tests"
     prompt: |
-      Implement a SecurityAuditLogger utility that:
-      1. Records login/logout/profile events with redacted fields
-      2. Supports structured JSON output
-      3. Integrates with AuthService and PageController
-      4. Exposes a governance report summarizing the last 20 events
+      Generate tests for AuthService that verify:
+      1. XSS prevention
+      2. Token handling
+      3. Logout cleanup
+      4. Error scenarios
     expected_patterns:
-      - "ObjectMapper"
-      - "recordAuditEvent"
-      - "@Slf4j"
-      - "List<Map<String, Object>>"
+      - "TestBed.configureTestingModule"
+      - "HttpTestingController"
+      - "Multiple test cases"
+      - "Spy objects"
     success_criteria:
-      - "Sensitive values redacted"
-      - "Unit tests assert log content"
-      - "Governance docs reference audit trail"
+      - "Tests detect vulnerabilities"
+      - "Mocks HTTP calls"
+      - "Tests async operations"
+      - "Coverage > 80%"

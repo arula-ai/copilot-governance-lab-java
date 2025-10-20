@@ -12,34 +12,43 @@
 - [ ] Team instructions were followed
 
 ## Quality Checklist
-- [ ] Unit/integration tests written or updated (coverage: ___%)
-- [ ] Jacoco report reviewed
-- [ ] Maven `verify` passing
+- [ ] Unit tests written/updated (coverage: ___%)
+- [ ] Component tests passing
+- [ ] E2E tests updated (if applicable)
+- [ ] ESLint passing (no warnings)
 - [ ] Documentation updated
-- [ ] No sensitive data logged
+- [ ] No console.log statements
 
 ## Security Review
-- [ ] Input sanitization implemented (controller/service/template)
+- [ ] Input sanitization implemented
+- [ ] No XSS vulnerabilities
 - [ ] Authentication/authorization verified
-- [ ] Cookies configured securely (HttpOnly/SameSite/Secure)
-- [ ] File uploads validated
-- [ ] Debug endpoints restricted or documented
+- [ ] No sensitive data in localStorage
+- [ ] CORS properly configured
+- [ ] Content Security Policy considered
 
-## Operational Readiness
-- [ ] `./scripts/run-all-checks.sh` executed
-- [ ] `./scripts/generate-report.sh` updated
-- [ ] Dependency impact assessed (`mvn dependency:tree`)
-- [ ] Manual smoke test performed
+## Performance Checklist
+- [ ] Bundle size impact checked
+- [ ] Change detection optimized
+- [ ] Memory leaks prevented (unsubscribe)
+- [ ] Lazy loading implemented where appropriate
+- [ ] Images optimized
+
+## Accessibility
+- [ ] ARIA labels added
+- [ ] Keyboard navigation works
+- [ ] Screen reader tested
+- [ ] Color contrast verified
 
 ## Testing Evidence
-- [ ] All automated tests passing
-- [ ] New tests cover security behaviors
-- [ ] Coverage maintained or improved
-- [ ] Manual testing notes attached
+- [ ] All tests passing
+- [ ] New tests added for changes
+- [ ] Coverage maintained/improved
+- [ ] Manual testing completed
 
 ## Copilot-Specific Checks
 - [ ] No hardcoded secrets
 - [ ] Business logic manually verified
-- [ ] Generated code follows Spring Boot patterns
-- [ ] Logging redacts sensitive data
-- [ ] Prompts and follow-ups documented when required
+- [ ] Generated code follows Angular patterns
+- [ ] RxJS operators used correctly
+- [ ] Type safety maintained

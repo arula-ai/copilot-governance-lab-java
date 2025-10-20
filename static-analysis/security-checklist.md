@@ -1,78 +1,120 @@
-# Security Checklist for Spring Boot Applications
+# Security Checklist for Angular Applications
 
 ## Pre-Deployment Security Review
 
 ### Authentication & Authorization
-- [ ] HttpOnly/Secure/SameSite cookies configured for sessions
-- [ ] Tokens generated with high entropy (SecureRandom)
-- [ ] Session regeneration after login
-- [ ] Server-side authorization enforced (method/URL level)
-- [ ] Logout clears persistent artifacts (files, caches)
-- [ ] Administrative endpoints gated by roles
+- [ ] JWT tokens stored in httpOnly cookies (not localStorage)
+- [ ] Token expiration properly validated
+- [ ] Refresh token mechanism implemented
+- [ ] Route guards implemented for protected routes
+- [ ] Server-side authorization checks in place
+- [ ] Proper logout clears all session data
 
 ### Input Validation & Sanitization
-- [ ] Bean validation on request DTOs
-- [ ] HTML sanitized before rendering
-- [ ] URL parameters validated (no open redirects)
-- [ ] File uploads restricted by type and size
-- [ ] SQL/JPQL uses parameterized queries
-- [ ] Error messages avoid reflecting raw input
+- [ ] All user inputs validated on client and server
+- [ ] DomSanitizer used for user-generated content
+- [ ] No innerHTML binding with user data
+- [ ] File uploads validated (type, size, content)
+- [ ] Form validation implemented with reactive forms
+- [ ] SQL injection prevention (parameterized queries)
 
 ### XSS Prevention
-- [ ] Thymeleaf uses `th:text` or sanitized fragments
-- [ ] No direct DOM manipulation with untrusted data
-- [ ] Content Security Policy headers evaluated
-- [ ] User-generated content passes through sanitizer library
-- [ ] Templates free of inline event handlers populated by user data
-- [ ] Query parameters encoded before display
+- [ ] Content Security Policy (CSP) headers configured
+- [ ] Angular security context properly used
+- [ ] No eval() or Function() constructor usage
+- [ ] No direct DOM manipulation (use Renderer2)
+- [ ] Template expressions safe from injection
+- [ ] URL parameters sanitized before use
 
 ### CSRF Protection
-- [ ] CSRF protection enabled or alternative pattern documented
-- [ ] SameSite cookies configured appropriately
-- [ ] State-changing endpoints require token/header checks
-- [ ] API clients authenticated before mutating data
+- [ ] CSRF tokens on all state-changing requests
+- [ ] SameSite cookie attribute set
+- [ ] Origin/Referer header validation
+- [ ] Double-submit cookie pattern implemented
 
 ### Data Protection
-- [ ] No plaintext secrets written to disk logs
+- [ ] No sensitive data in localStorage/sessionStorage
 - [ ] Sensitive data encrypted in transit (HTTPS)
-- [ ] Environment variables or secret store used for credentials
-- [ ] Errors do not leak stack traces to end users
-- [ ] Passwords hashed before persistence
+- [ ] Sensitive data encrypted at rest
+- [ ] No credentials in source code
+- [ ] Environment variables for secrets
+- [ ] No sensitive data in error messages
 
 ### Error Handling
-- [ ] Global exception handler returns sanitized responses
-- [ ] Structured logging implemented with redaction
-- [ ] Monitoring/alerting in place for critical failures
-- [ ] HTTP status codes align with failure modes
+- [ ] Global error handler implemented
+- [ ] User-friendly error messages (no stack traces)
+- [ ] Errors logged to monitoring service
+- [ ] No sensitive information in logs
+- [ ] Proper HTTP error status codes used
+- [ ] Network errors handled gracefully
 
 ### API Security
-- [ ] Endpoints require authentication/authorization as appropriate
-- [ ] Rate limiting or abuse detection documented
-- [ ] Input size/time limits enforced
-- [ ] CORS restricted to trusted origins
-- [ ] Dependency versions free of known CVEs
+- [ ] HTTPS enforced for all API calls
+- [ ] API rate limiting implemented
+- [ ] Request timeout configured
+- [ ] Retry logic with exponential backoff
+- [ ] CORS properly configured
+- [ ] API keys not exposed in client code
+
+### Memory Management
+- [ ] All observables properly unsubscribed
+- [ ] No memory leaks from setInterval/setTimeout
+- [ ] OnDestroy lifecycle hook implemented
+- [ ] Large lists use virtual scrolling
+- [ ] Images lazy loaded
+- [ ] Components destroyed properly
+
+### Code Quality
+- [ ] No console.log in production code
+- [ ] No debugger statements
+- [ ] TypeScript strict mode enabled
+- [ ] No 'any' types without justification
+- [ ] ESLint security rules passing
+- [ ] All dependencies up to date
 
 ### Testing
-- [ ] Unit/integration tests cover security controls
-- [ ] Jacoco coverage ≥ 60% overall (higher for remediated code)
-- [ ] MockMvc tests assert security headers and failures
-- [ ] Negative tests demonstrate hardening (XSS, CSRF, upload abuse)
-- [ ] Dependency scans reviewed
+- [ ] Unit tests coverage ≥ 80%
+- [ ] Security test cases included
+- [ ] XSS prevention tested
+- [ ] Authentication/authorization tested
+- [ ] Input validation tested
+- [ ] Error handling tested
+
+### Accessibility
+- [ ] ARIA labels on all interactive elements
+- [ ] Keyboard navigation functional
+- [ ] Screen reader compatible
+- [ ] Color contrast meets WCAG standards
+- [ ] Focus management implemented
+- [ ] Skip links provided
+
+### Performance
+- [ ] Bundle size optimized (< 1MB initial)
+- [ ] Lazy loading implemented
+- [ ] OnPush change detection used
+- [ ] trackBy functions in *ngFor
+- [ ] Image optimization applied
+- [ ] Caching strategy implemented
 
 ### Dependency Security
-- [ ] `mvn verify` passes without critical vulnerabilities
-- [ ] Dependency updates tracked and scheduled
-- [ ] No deprecated or unmaintained libraries in use
+- [ ] npm audit passing (no high/critical)
+- [ ] Dependencies regularly updated
+- [ ] No deprecated packages
 - [ ] License compliance verified
+- [ ] SRI tags for CDN resources
+- [ ] Dependency confusion attack prevention
 
-### Copilot-Specific Checks
+## Copilot-Specific Checks
 - [ ] Generated code reviewed manually
-- [ ] `.github/copilot-instructions.md` guardrails followed
-- [ ] Secure patterns enforced even when Copilot suggests unsafe defaults
-- [ ] Prompts and responses captured in documentation where required
+- [ ] Team instructions followed
+- [ ] Security patterns enforced
+- [ ] No hardcoded secrets in generated code
+- [ ] Business logic validated
+- [ ] Generated tests actually test functionality
 
 ## Sign-Off
-- [ ] Code reviewed by security/governance lead
-- [ ] Governance artifacts (`VULNERABILITIES.md`, `FIXES.md`, `COPILOT_USAGE.md`) refreshed
-- [ ] Quality gates (`./scripts/run-all-checks.sh`, `./scripts/generate-report.sh`) executed
-- [ ] Release notes updated with security context
+- [ ] Code reviewed by security team
+- [ ] Penetration testing completed
+- [ ] Security scan passed
+- [ ] Documentation updated
+- [ ] Deployment checklist completed

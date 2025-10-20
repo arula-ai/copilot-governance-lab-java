@@ -9,25 +9,25 @@ Maintain this log whenever Testing Mode (also acting as Linting Mode) runs.
 **Operator:** ____________
 
 ### Initial Assumptions & Targets
-- Frameworks / tooling: (e.g., JUnit 5, MockMvc, Jacoco, Maven verify)
-- Coverage goals: Instruction ≥60%, Branches ≥60%, Critical services ≥60%
-- Quality gates: `mvn test`, `mvn verify`, `./scripts/run-all-checks.sh`
-- Additional objectives: (e.g., dependency audit, regression focus)
+- Frameworks / tooling: (e.g., Jasmine + Karma, ESLint security config)
+- Coverage goals: Statements ≥80%, Branches ≥80%, Functions ≥80%, Lines ≥80%
+- Linting focus: `npm run lint`, `npm run lint:security`
+- Additional objectives: (e.g., audit remediation, regression focus)
 
 ### Commands Executed
 | Command | Result | Notes |
 |---------|--------|-------|
-| `mvn test` | | |
-| `mvn verify` | | |
-| `./scripts/run-all-checks.sh` | | |
-| `./scripts/generate-report.sh` | | |
+| `npm run lint` | | |
+| `npm run lint:security` | | |
+| `npm run test:coverage` | | |
+| `npm audit --audit-level=high` | | |
 | Additional command | | |
 
 ### Coverage Summary
-- Instruction: ____%
+- Statements: ____%
 - Branches: ____%
-- Complexity: ____%
-- High-risk classes covered: ____%
+- Functions: ____%
+- Lines: ____%
 
 ### Findings & Follow-ups
 - Pass/Fail summary:

@@ -8,105 +8,156 @@
 
 ## Scenario
 
-A Spring Boot payment gateway allows customers to transfer funds between accounts. The current implementation lacks CSRF protection and performs balance updates in a non-atomic fashion, enabling race-condition exploits and double-spend attacks.
-
-**Business Requirements:**
-- Users can submit transfers via browser and mobile apps
-- Transfers must be idempotent and auditable
-- Concurrency should support burst traffic during peak hours
-- Failed or suspicious transactions must be logged for review
+You're securing a financial transaction system where users can transfer money between accounts. The system has critical race conditions that allow double-spending and CSRF vulnerabilities that permit unauthorized transactions.
 
 **Security Requirements:**
-- Enforce CSRF protection for browser-based clients
-- Prevent simultaneous race conditions on account balances
-- Provide idempotency keys for retries
-- Ensure audit logging for success/failure scenarios
+- Prevent CSRF on all state-changing operations
+- Eliminate race conditions in balance checks
+- Ensure transactional atomicity
+- Implement idempotency for requests
+- Prevent TOCTOU (Time-of-check to time-of-use) bugs
 
 ---
 
 ## Vulnerable Code
 
-### `TransferController.java`
-
-```java
-@RestController
-@RequestMapping("/api/transfer")
-public class TransferController {
-
-    private final AccountRepository accounts;
-
-    @PostMapping
-    public ResponseEntity<Map<String, Object>> transfer(@RequestBody TransferRequest request) {
-        Account from = accounts.findByNumber(request.from()).orElseThrow();
-        Account to = accounts.findByNumber(request.to()).orElseThrow();
-
-        if (from.getBalance().compareTo(request.amount()) < 0) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("status", "FAILURE", "reason", "Insufficient funds"));
-        }
-
-        // VULNERABILITY: No synchronization or transactional boundary
-        from.setBalance(from.getBalance().subtract(request.amount()));
-        to.setBalance(to.getBalance().add(request.amount()));
-        accounts.save(from);
-        accounts.save(to);
-
-        return ResponseEntity.ok(Map.of("status", "SUCCESS", "reference", UUID.randomUUID().toString()));
+```typescript
+// transfer.service.ts - VULNERABLE
+@Injectable()
+export class TransferService {
+  
+  async transfer(from: string, to: string, amount: number): Promise<void> {
+    // VULNERABILITY: Race condition - check and debit not atomic
+    const balance = await this.getBalance(from);
+    
+    if (balance >= amount) {
+      // VULNERABILITY: Time gap allows concurrent transfers
+      await this.sleep(100); // Simulating network delay
+      await this.debit(from, amount);
+      await this.credit(to, amount);
     }
+  }
+  
+  async getBalance(account: string): Promise<number> {
+    // VULNERABILITY: No locking mechanism
+    return this.db.query('SELECT balance FROM accounts WHERE id = ?', [account]);
+  }
 }
-```
 
-### `transfer.html`
-
-```html
-<!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>Transfer Funds</title>
-</head>
-<body>
-<form method="post" action="/api/transfer">
-    <label>From Account <input name="from"></label>
-    <label>To Account <input name="to"></label>
-    <label>Amount <input name="amount" type="number" step="0.01"></label>
-    <!-- VULNERABILITY: Missing CSRF token -->
-    <button type="submit">Send</button>
-</form>
-</body>
-</html>
+// transfer.component.ts - VULNERABLE
+@Component({
+  template: `
+    <form (ngSubmit)="transfer()">
+      <!-- VULNERABILITY: No CSRF token -->
+      <input [(ngModel)]="toAccount" name="to"/>
+      <input [(ngModel)]="amount" name="amount" type="number"/>
+      <button type="submit">Transfer</button>
+    </form>
+  `
+})
+export class TransferComponent {
+  toAccount = '';
+  amount = 0;
+  
+  transfer(): void {
+    // VULNERABILITY: No idempotency key
+    this.http.post('/api/transfer', {
+      to: this.toAccount,
+      amount: this.amount
+    }).subscribe();
+  }
+}
 ```
 
 ---
 
 ## Attack Scenarios
-- CSRF attack from malicious site submitting hidden form
-- Race condition via concurrent requests exploiting lack of locking
-- Replay attack due to missing idempotency identifier
-- Time-of-check/time-of-use gap after balance check but before debit
-- Brute-forcing transfer references (UUIDs logged without randomness checks)
+
+### Attack 1: Double-Spending via Race Condition
+```typescript
+// Attacker sends multiple concurrent requests
+Promise.all([
+  transfer(account, attacker, 1000),
+  transfer(account, attacker, 1000),
+  transfer(account, attacker, 1000)
+]); // All check balance before any debit occurs
+```
+
+### Attack 2: CSRF Attack
+```html
+<!-- Attacker's malicious website -->
+<form action="https://bank.com/api/transfer" method="POST">
+  <input name="to" value="attacker-account"/>
+  <input name="amount" value="10000"/>
+</form>
+<script>document.forms[0].submit();</script>
+```
+
+### Attack 3: Request Replay
+```typescript
+// Intercept and replay transfer request multiple times
+for(let i = 0; i < 100; i++) {
+  fetch('/api/transfer', { method: 'POST', body: interceptedRequest });
+}
+```
 
 ---
 
-## Tasks
-1. Add CSRF protection (Spring Security tokens or double-submit cookie pattern) for browser flows.
-2. Make transfers atomic using transactions and row-level locks/optimistic locking.
-3. Introduce idempotency keys enforced per account pair + amount.
-4. Provide audit logging capturing attempts, failures, and anomalies.
-5. Write tests covering CSRF rejection, race-condition mitigation, and idempotent retries.
+## Your Tasks
+
+### Task 1: Identify Vulnerabilities (4 pts)
+- Document all CSRF vulnerabilities
+- Identify all race conditions
+- Find TOCTOU bugs
+- Map to OWASP categories
+
+### Task 2: Implement Fixes (8 pts)
+
+1. **CSRF Protection**
+   - Implement CSRF tokens (synchronizer pattern)
+   - Add SameSite cookie attributes
+   - Verify Origin/Referer headers
+   - Implement double-submit cookie pattern
+
+2. **Race Condition Prevention**
+   - Implement database-level locking (SELECT FOR UPDATE)
+   - Use optimistic locking with version numbers
+   - Implement pessimistic locking where needed
+   - Ensure atomic transactions
+
+3. **Idempotency**
+   - Generate unique request IDs
+   - Store processed request IDs
+   - Return cached responses for duplicates
+   - Implement idempotency keys
+
+4. **Transaction Isolation**
+   - Use SERIALIZABLE isolation level
+   - Implement saga pattern for complex transactions
+   - Add distributed locks if needed
+
+### Task 3: Security Tests (4 pts)
+```typescript
+it('should prevent double-spending via concurrent requests');
+it('should require CSRF token for transfers');
+it('should handle request replay with idempotency');
+it('should prevent TOCTOU in balance checks');
+```
 
 ---
 
-## Success Criteria
-- [ ] CSRF tokens validated for HTML form submissions
-- [ ] Transfer operations wrapped in transactions with locking
-- [ ] Idempotency keys prevent duplicate transfers
-- [ ] Tests simulate concurrent requests without inconsistent balances
-- [ ] Governance documentation updated with mitigation notes
+## Bonus (5 pts)
+
+- **Distributed Locking (2 pts)**: Implement Redis-based locks
+- **Saga Pattern (2 pts)**: Implement compensating transactions
+- **Formal Proof (1 pt)**: Mathematically prove idempotency
 
 ---
 
-## Bonus (Up to +5 pts)
-- Detect and alert on anomalous transaction frequency
-- Provide administrative dashboard summarizing blocked CSRF attempts
-- Implement async eventing that preserves transactional safety
+## Resources
+
+- [OWASP CSRF Prevention](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html)
+- [Database Locking Strategies](https://www.postgresql.org/docs/current/explicit-locking.html)
+- [Idempotency Patterns](https://stripe.com/docs/api/idempotent_requests)
+
+**This challenge requires deep understanding of concurrency!** 
