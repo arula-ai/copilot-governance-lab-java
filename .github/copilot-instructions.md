@@ -1,112 +1,78 @@
 ---
-description: 'Angular-specific coding standards and best practices'
-applyTo: '**/*.ts, **/*.html, **/*.scss, **/*.css'
+description: 'Spring Boot coding standards, security practices, and workflow expectations'
+applyTo: '**/*.java, **/*.properties, **/*.yml, **/*.yaml, **/*.xml'
 ---
 
-# Angular Development Instructions
+# Spring Boot Development Instructions
 
-Instructions for generating high-quality Angular applications with TypeScript, using Angular Signals for state management, adhering to Angular best practices as outlined at https://angular.dev.
+The lab centers on a Spring Boot 3 application built with Java 17 and Maven. Follow these guardrails so Copilot-assisted changes stay secure, maintainable, and auditable.
 
 ## Project Context
-- Latest Angular version (use standalone components by default)
-- TypeScript for type safety
-- Angular CLI for project setup and scaffolding
-- Follow Angular Style Guide (https://angular.dev/style-guide)
-- Use Angular Material or other modern UI libraries for consistent styling (if specified)
+- Java 17 (Temurin/OpenJDK) with Spring Boot 3
+- Maven wrapper (`./mvnw`) for builds, testing, and quality gates
+- Thymeleaf templates for server-side views
+- Validation via `jakarta.validation` annotations (`@Valid`, constraints)
+- Unit/integration testing with JUnit 5, Spring Boot Test, and Jacoco coverage
 
 ## Development Standards
 
-### Architecture
-- Use standalone components unless modules are explicitly required
-- Organize code by feature modules or domains for scalability
-- Implement lazy loading for feature modules to optimize performance
-- Use Angular's built-in dependency injection system effectively
-- Structure components with a clear separation of concerns (smart vs. presentational components)
+### Architecture & Design
+- Preserve the layered structure: controllers delegate to services; services encapsulate business logic; repositories/utilities isolate persistence and IO concerns.
+- Keep controllers thin—no direct file/database manipulation; push logic into services/components that can be unit tested.
+- Favor constructor injection for mandatory dependencies; avoid field injection.
+- Keep request/response DTOs separate from domain entities when validation or serialization rules differ.
+- Guard against path traversal or arbitrary file access in any code that touches the filesystem.
 
-### TypeScript
-- Enable strict mode in `tsconfig.json` for type safety
-- Define clear interfaces and types for components, services, and models
-- Use type guards and union types for robust type checking
-- Implement proper error handling with RxJS operators (e.g., `catchError`)
-- Use typed forms (e.g., `FormGroup`, `FormControl`) for reactive forms
+### Java & Spring Practices
+- Use `Optional` for genuinely optional return values; otherwise return concrete types.
+- Prefer immutability for configuration/data transfer objects.
+- Handle exceptions with Spring’s `@ControllerAdvice`/`@ExceptionHandler` or explicit responses; avoid exposing stack traces.
+- Log using SLF4J (`log.info`, `log.warn`, `log.error`) and never write secrets or PII to logs.
+- Externalize configuration to `application.properties`/`application.yml` and document new settings.
 
-### Component Design
-- Follow Angular's component lifecycle hooks best practices
-- When using Angular >= 19, Use `input()` `output()`, `viewChild()`, `viewChildren()`, `contentChild()` and `viewChildren()` functions instead of decorators; otherwise use decorators
-- Leverage Angular's change detection strategy (default or `OnPush` for performance)
-- Keep templates clean and logic in component classes or services
-- Use Angular directives and pipes for reusable functionality
-
-### Styling
-- Use Angular's component-level CSS encapsulation (default: ViewEncapsulation.Emulated)
-- Prefer SCSS for styling with consistent theming
-- Implement responsive design using CSS Grid, Flexbox, or Angular CDK Layout utilities
-- Follow Angular Material's theming guidelines if used
-- Maintain accessibility (a11y) with ARIA attributes and semantic HTML
-
-### State Management
-- Use Angular Signals for reactive state management in components and services
-- Leverage `signal()`, `computed()`, and `effect()` for reactive state updates
-- Use writable signals for mutable state and computed signals for derived state
-- Handle loading and error states with signals and proper UI feedback
-- Use Angular's `AsyncPipe` to handle observables in templates when combining signals with RxJS
-
-### Data Fetching
-- Use Angular's `HttpClient` for API calls with proper typing
-- Implement RxJS operators for data transformation and error handling
-- Use Angular's `inject()` function for dependency injection in standalone components
-- Implement caching strategies (e.g., `shareReplay` for observables)
-- Store API response data in signals for reactive updates
-- Handle API errors with global interceptors for consistent error handling
+### Web & Validation
+- Annotate controller methods with explicit `@RequestMapping`/`@GetMapping`/... verbs and graceful error responses (`ResponseEntity`).
+- Apply `@Valid` on request bodies/parameters and annotate fields with correct constraints (`@NotBlank`, `@Email`, `@Size`, etc.).
+- Sanitize or encode user-supplied data before rendering inside Thymeleaf templates (use `th:text`, not `th:utext`, unless you have performed explicit escaping).
+- Reject dangerous file names or content types when handling uploads/downloads; store outside the web root.
 
 ### Security
-- Sanitize user inputs using Angular's built-in sanitization
-- Implement route guards for authentication and authorization
-- Use Angular's `HttpInterceptor` for CSRF protection and API authentication headers
-- Validate form inputs with Angular's reactive forms and custom validators
-- Follow Angular's security best practices (e.g., avoid direct DOM manipulation)
+- Enforce authentication/authorization decisions centrally (filters, Spring Security config) when the exercise introduces them.
+- Protect against CSRF, XSS, SQL/command injection, and deserialization attacks—prefer framework features over custom code.
+- Validate and normalize file paths/URIs, applying allow-lists where possible.
+- Keep dependencies current and avoid using vulnerable libraries; reference `static-analysis` findings where provided.
 
-### Performance
-- Enable production builds with `ng build --prod` for optimization
-- Use lazy loading for routes to reduce initial bundle size
-- Optimize change detection with `OnPush` strategy and signals for fine-grained reactivity
-- Use trackBy in `ngFor` loops to improve rendering performance
-- Implement server-side rendering (SSR) or static site generation (SSG) with Angular Universal (if specified)
-
-### Testing
-- Write unit tests for components, services, and pipes using Jasmine and Karma
-- Use Angular's `TestBed` for component testing with mocked dependencies
-- Test signal-based state updates using Angular's testing utilities
-- Write end-to-end tests with Cypress or Playwright (if specified)
-- Mock HTTP requests using `HttpClientTestingModule`
-- Ensure high test coverage for critical functionality
+### Testing & Quality Gates
+- Add/extend unit and integration tests for every fix or feature (`src/test/java`).
+- Use mocking for external dependencies; prefer `MockMvc` or `WebTestClient` for controller tests.
+- Always run the Maven gates relevant to your change set:
+  - `./mvnw clean`
+  - `./mvnw test`
+  - `./mvnw verify` (generates Jacoco)
+  - `./mvnw dependency:tree` (supply evidence of dependency review)
+  - `./scripts/run-all-checks.sh` and `./scripts/generate-report.sh` when governance stages require it.
+- Capture coverage improvements with Jacoco and update documentation when coverage drops below thresholds.
 
 ## Workflow Logging Requirements
-- Every Copilot chat mode interaction must append a concise summary of actions, decisions, and outstanding risks to `docs/workflow-tracker.md` before ending the session (always modify this existing file—never create alternate tracker files).
-- Planning sessions must capture initial assumptions, scope, and open questions in the tracker and store a detailed plan in `docs/plans/plan.md` (overwriting the previous plan rather than creating new filenames).
-- Testing Mode doubles as linting; it must create or update `test-coverage.md` in the active stage with assumptions, commands executed (`npm run lint`, `npm run lint:security`, `npm run test:coverage`, `npm audit --audit-level=high`, etc.), results, coverage metrics, and follow-up actions. Do not create additional testing log files.
-- Scrum Master Mode should note backlog breakdowns, owners, and dependencies in both a checklist file (for example `plan.tasks.md`) and the workflow tracker.
-- Validation and Need Review modes must record pass/fail summaries, cited files, and required remediations in the tracker to preserve an audit trail.
-- Store plans, task lists, and coverage notes in `docs/` (e.g., `docs/workflow-tracker.md`, `docs/test-coverage.md`, stage-specific guides) so downstream modes can consume the same artifacts.
+- Every Copilot chat mode session must append a concise summary of actions, decisions, and remaining risks to `docs/workflow-tracker.md` before ending.
+- Planning sessions log assumptions and questions in the tracker and store detailed plans in `docs/plans/plan.md` (overwrite prior plan instead of creating new filenames).
+- Testing Mode must create or update `docs/test-coverage.md` with commands executed (`./mvnw clean`, `./mvnw test`, `./mvnw verify`, `./mvnw dependency:tree`, scripts, etc.), results, coverage metrics, and follow-up actions; do not create alternate coverage logs.
+- Scrum Master Mode documents backlog breakdowns, owners, and dependencies both in its task file (for example `plan.tasks.md`) and the workflow tracker.
+- Validation and Need Review modes capture pass/fail summaries, cited files, and required remediation in the tracker to maintain an audit trail.
+- Store all governance artifacts within `docs/` so downstream modes can reuse them.
 
 ## Implementation Process
-1. Plan project structure and feature modules
-2. Define TypeScript interfaces and models
-3. Scaffold components, services, and pipes using Angular CLI
-4. Implement data services and API integrations with signal-based state
-5. Build reusable components with clear inputs and outputs
-6. Add reactive forms and validation
-7. Apply styling with SCSS and responsive design
-8. Implement lazy-loaded routes and guards
-9. Add error handling and loading states using signals
-10. Write unit and end-to-end tests
-11. Optimize performance and bundle size
+1. Review relevant plans, vulnerabilities, and guardrails.
+2. Update or create tests demonstrating the fix/feature behavior.
+3. Implement Spring Boot changes with secure defaults (validation, logging, error handling).
+4. Run required Maven commands and governance scripts; capture outcomes.
+5. Update documentation (`VULNERABILITIES.md`, `FIXES.md`, `docs/workflow-tracker.md`, etc.) with evidence.
+6. Prepare clean commits/PRs with context, test results, and Copilot usage notes.
 
 ## Additional Guidelines
-- Follow Angular's naming conventions (e.g., `feature.component.ts`, `feature.service.ts`)
-- Use Angular CLI commands for generating boilerplate code
-- Document components and services with clear JSDoc comments
-- Ensure accessibility compliance (WCAG 2.1) where applicable
-- Use Angular's built-in i18n for internationalization (if specified)
-- Keep code DRY by creating reusable utilities and shared modules
-- Use signals consistently for state management to ensure reactive updates
+- Use `.java` naming conventions (`PascalCase` types, camelCase members); keep packages descriptive (`com.github.copilot.<feature>`).
+- Keep controllers, services, and utilities small and focused—refactor large classes.
+- Prefer Spring configuration properties (`@ConfigurationProperties`) instead of hard-coded values.
+- Never commit secrets; rely on environment variables or secrets management.
+- Document any temporary mitigations, TODOs, or risk acceptance inside the tracker and follow up during validation stages.
+- When uncertain, reference official Spring Boot documentation or OWASP guides, and reflect any decisions in the workflow tracker for auditability.

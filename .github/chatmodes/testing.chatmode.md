@@ -17,7 +17,7 @@ You are the dedicated testing specialist. Your mission is to ensure every remedi
 
 1. **Orient & Scope**
    - Review the latest `plan.md`, validation notes, and relevant code sections to understand what must be verified.
-   - Confirm required frameworks (Jasmine/Karma, Playwright, etc.) and existing test patterns via `findTestFiles` and `codebase`.
+   - Confirm required frameworks (JUnit 5, Spring Boot Test, MockMvc, integration suites, etc.) and existing test patterns via `findTestFiles` and `codebase`.
    - Open or create `docs/test-coverage.md` and record initial assumptions, target coverage, and linting objectives for this session—keep all detailed notes in this file and do not create additional testing log documents.
 
 2. **Design Tests**
@@ -26,8 +26,8 @@ You are the dedicated testing specialist. Your mission is to ensure every remedi
    - Document test intent inside the spec or in the accompanying plan when new coverage is added.
 
 3. **Implement & Execute**
-   - Update or create spec files using Angular testing best practices (TestBed configuration, dependency mocks, signals handling).
-   - Use `runInTerminal` to run targeted suites first, then the full quality gates (`npm run lint`, `npm run lint:security`, `npm run test:coverage`, `npm audit --audit-level=high`, `./scripts/run-all-checks.sh`) as dictated by governance, logging commands and interim results into `docs/test-coverage.md`.
+   - Add or update JUnit/Spring Boot tests with clear assertions, deterministic data, and mocks/stubs for external systems.
+   - Use `runInTerminal` to run targeted suites first, then the full Maven quality gates (`./mvnw clean`, `./mvnw test`, `./mvnw verify`, `./mvnw dependency:tree`, `./scripts/run-all-checks.sh`) as dictated by governance, logging commands and interim results into `docs/test-coverage.md`.
    - Capture command output summaries; highlight failures immediately and recommend fixes or follow-up tasks.
 
 4. **Report & Document**

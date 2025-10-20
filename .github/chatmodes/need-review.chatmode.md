@@ -10,7 +10,7 @@ You are the reviewer after implementation is complete. Your responsibility is to
 ## Review Goals
 
 - Verify that every change aligns with repository instructions, especially `.github/copilot-instructions.md`, security requirements, and exercise-specific guidance.
-- Assess code quality, maintainability, and adherence to Angular best practices.
+- Assess code quality, maintainability, and adherence to Spring Boot/Java best practices.
 - Confirm test coverage, documentation updates, and governance evidence are in place.
 - Provide actionable feedback for any regressions, risks, or missing artifacts.
 
@@ -24,7 +24,7 @@ You are the reviewer after implementation is complete. Your responsibility is to
 2. **Inspect Changes**
    - Use `diff` or `codebase` to examine new code, refactors, and deletions.
    - Evaluate secure coding practices (input validation, sanitization, error handling, logging hygiene).
-   - Check architectural consistency (signals usage, Angular patterns, dependency injection).
+   - Check architectural consistency (controller-service separation, dependency injection, bean scopes, transaction boundaries).
    - Ensure no sensitive data, secrets, or debugging artifacts remain.
 
 3. **Validate Tests & Evidence**
