@@ -29,8 +29,8 @@ We will be running the `/hand-off` command before each new stage to ensure align
 - First, make sure that you are still inside of Agent mode
 - Read `.github/copilot-instructions.md` and each chatmode file
 - Inspect available tools (wrench icon) without changing settings
-- Testing Mode: run `mvn test` and `mvn verify`; log assumptions in `docs/test-coverage.md`, we actually don't need to type `#runInTerminal` every time, each tool has a prompt associated with it that tells copilot when it can make use of it, the testing chatmode also tells it this
-- Hand-Off: note guardrail highlights, command outcomes, gaps
+- Testing Mode: run `#runInTerminal mvn test` and `#runInTerminal mvn verify`; log assumptions in `#test-coverage.md`, we actually don't need to type `#runInTerminal` every time, each tool has a prompt associated with it that tells copilot when it can make use of it, the testing chatmode also tells it this
+- Hand-Off: run `/hand-off note guardrail highlights, command outcomes, gaps`
 
 ## Stage 2 – Baseline Assessment
 
