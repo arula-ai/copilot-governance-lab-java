@@ -9,7 +9,7 @@ The lab centers on a Spring Boot 3 application built with Java 17 and Maven. Fol
 
 ## Project Context
 - Java 17 (Temurin/OpenJDK) with Spring Boot 3
-- Maven wrapper (`./mvnw`) for builds, testing, and quality gates
+- Maven CLI (`mvn`) for builds, testing, and quality gates
 - Thymeleaf templates for server-side views
 - Validation via `jakarta.validation` annotations (`@Valid`, constraints)
 - Unit/integration testing with JUnit 5, Spring Boot Test, and Jacoco coverage
@@ -46,17 +46,17 @@ The lab centers on a Spring Boot 3 application built with Java 17 and Maven. Fol
 - Add/extend unit and integration tests for every fix or feature (`src/test/java`).
 - Use mocking for external dependencies; prefer `MockMvc` or `WebTestClient` for controller tests.
 - Always run the Maven gates relevant to your change set:
-  - `./mvnw clean`
-  - `./mvnw test`
-  - `./mvnw verify` (generates Jacoco)
-  - `./mvnw dependency:tree` (supply evidence of dependency review)
+  - `mvn clean`
+  - `mvn test`
+  - `mvn verify` (generates Jacoco)
+  - `mvn dependency:tree` (supply evidence of dependency review)
   - `./scripts/run-all-checks.sh` and `./scripts/generate-report.sh` when governance stages require it.
 - Capture coverage improvements with Jacoco and update documentation when coverage drops below thresholds.
 
 ## Workflow Logging Requirements
 - Every Copilot chat mode session must append a concise summary of actions, decisions, and remaining risks to `docs/workflow-tracker.md` before ending.
 - Planning sessions log assumptions and questions in the tracker and store detailed plans in `docs/plans/plan.md` (overwrite prior plan instead of creating new filenames).
-- Testing Mode must create or update `docs/test-coverage.md` with commands executed (`./mvnw clean`, `./mvnw test`, `./mvnw verify`, `./mvnw dependency:tree`, scripts, etc.), results, coverage metrics, and follow-up actions; do not create alternate coverage logs.
+- Testing Mode must create or update `docs/test-coverage.md` with commands executed (`mvn clean`, `mvn test`, `mvn verify`, `mvn dependency:tree`, scripts, etc.), results, coverage metrics, and follow-up actions; do not create alternate coverage logs.
 - Scrum Master Mode documents backlog breakdowns, owners, and dependencies both in its task file (for example `plan.tasks.md`) and the workflow tracker.
 - Validation and Need Review modes capture pass/fail summaries, cited files, and required remediation in the tracker to maintain an audit trail.
 - Store all governance artifacts within `docs/` so downstream modes can reuse them.

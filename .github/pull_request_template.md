@@ -15,7 +15,7 @@
 - [ ] Unit tests written/updated (JUnit/MockMvc) — coverage: ___%
 - [ ] Integration tests updated or rationale documented
 - [ ] Jacoco coverage ≥ 60% or exception noted
-- [ ] `./mvnw clean verify` passing
+- [ ] `mvn clean verify` passing
 - [ ] Documentation updated
 - [ ] No `System.out.println`/`printStackTrace` debugging left behind
 
@@ -24,7 +24,7 @@
 - [ ] Output encoding prevents XSS in templates/responses
 - [ ] Authentication/authorization paths verified (if applicable)
 - [ ] File/path handling hardened (no traversal or unsafe writes)
-- [ ] Dependencies reviewed (`./mvnw dependency:tree`)
+- [ ] Dependencies reviewed (`mvn dependency:tree`)
 - [ ] Secrets and credentials kept out of code/config
 
 ## Performance Checklist

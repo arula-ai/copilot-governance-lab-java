@@ -27,7 +27,7 @@ You are the dedicated testing specialist. Your mission is to ensure every remedi
 
 3. **Implement & Execute**
    - Add or update JUnit/Spring Boot tests with clear assertions, deterministic data, and mocks/stubs for external systems.
-   - Use `runInTerminal` to run targeted suites first, then the full Maven quality gates (`./mvnw clean`, `./mvnw test`, `./mvnw verify`, `./mvnw dependency:tree`, `./scripts/run-all-checks.sh`) as dictated by governance, logging commands and interim results into `docs/test-coverage.md`.
+   - Use `runInTerminal` to run targeted suites first, then the full Maven quality gates (`mvn clean`, `mvn test`, `mvn verify`, `mvn dependency:tree`, `./scripts/run-all-checks.sh`) as dictated by governance, logging commands and interim results into `docs/test-coverage.md`.
    - Capture command output summaries; highlight failures immediately and recommend fixes or follow-up tasks.
 
 4. **Report & Document**

@@ -8,8 +8,8 @@ Follow these lean steps. After each stage, run Summarizer Mode with the Hand-Off
 | ----- | --------------------------------------------------- | ------------------------------------------------------------------------------- |
 | 0     | Agent                                               | `./scripts/setup-lab.sh`, `mvn spring-boot:run`                                 |
 | 1     | Agent → Testing                                     | `.github/copilot-instructions.md`, `mvn test`, `mvn verify`                     |
-| 2     | Planning → Verification Agent → Agent               | `docs/vulnerability-guide.md`, `docs/test-coverage.md`, plan.md                 |
-| 3     | Agent ↔ Need Review                                 | `src/app/**`, `VULNERABILITIES.md`, `FIXES.md`                                  |
+| 2     | Planning → Verification Agent → Agent               | `docs/vulnerability-guide.md`, `docs/test-coverage.md`, `docs/plans/plan.md`    |
+| 3     | Agent ↔ Need Review                                 | `src/main/**`, `VULNERABILITIES.md`, `FIXES.md`                                 |
 | 4     | Planning → Testing → Agent                          | `docs/testing-guide.md`, `mvn verify`, `docs/test-coverage.md`                  |
 | 5     | Planning → Verification Agent → Agent ↔ Need Review | `docs/secure-features-guide.md`, feature specs                                  |
 | 6     | Testing → Agent                                     | `mvn test`, `mvn verify`, `mvn dependency:tree`, `./scripts/generate-report.sh` |
@@ -18,7 +18,7 @@ Follow these lean steps. After each stage, run Summarizer Mode with the Hand-Off
 
 ## Stage 0 – Environment Setup
 
-- Agent Mode: `#runInTerminal #setup-lab.sh`, make sure both chat variables are actually linked if copying/pasting
+- Agent Mode: `#runInTerminal ./scripts/setup-lab.sh`, make sure both chat variables are actually linked if copying/pasting
 - Agent Mode: `#runInTerminal mvn spring-boot:run` (initial build issues are fine)
 - Hand-Off: run `/hand-off` summarize setup status and blockers, you'll notice it isn't able to run the editFile tool. This is on purpose; You should add it yourself then re-run the /hand-off command
 
@@ -29,7 +29,7 @@ We will be running the `/hand-off` command before each new stage to ensure align
 - First, make sure that you are still inside of Agent mode
 - Read `.github/copilot-instructions.md` and each chatmode file
 - Inspect available tools (wrench icon) without changing settings
-- Testing Mode: run `#runInTerminal mvn test` and `#runInTerminal mvn verify`; log assumptions in `#test-coverage.md`, we actually don't need to type `#runInTerminal` every time, each tool has a prompt associated with it that tells copilot when it can make use of it, the testing chatmode also tells it this
+- Testing Mode: run `#runInTerminal mvn test` and `#runInTerminal mvn verify`; log assumptions in `docs/test-coverage.md`, we actually don't need to type `#runInTerminal` every time, each tool has a prompt associated with it that tells copilot when it can make use of it, the testing chatmode also tells it this
 - Hand-Off: run `/hand-off note guardrail highlights, command outcomes, gaps`
 
 ## Stage 2 – Baseline Assessment
@@ -37,13 +37,13 @@ We will be running the `/hand-off` command before each new stage to ensure align
 - Planning Mode: review `#vulnerability-guide.md` and current coverage
 - Verification Agent: sanity-check the remediation plan against guardrails
 - Agent Mode: capture file targets, risk notes, evidence needs
-- Hand-Off: record the approved plan and open questions; save/update `docs/plans/plan.md`
+- Hand-Off: record the approved plan and open questions; save/update `#plan.md`
 
 ## Stage 3 – Remediation
 
-- Agent Mode: implement fixes in `src/app/**` referencing the plan
+- Agent Mode: implement fixes in `src/main/**` referencing the plan
 - Need Review Mode: request feedback per change slice; fold responses back in Agent Mode
-- Agent Mode: update `VULNERABILITIES.md` / `FIXES.md` as fixes ship
+- Agent Mode: update `#VULNERABILITIES.md` / `#FIXES.md` as fixes ship
 - Hand-Off: summarize files touched, decisions made, pending follow-ups
 
 ## Stage 4 – Security Test Generation
@@ -51,7 +51,7 @@ We will be running the `/hand-off` command before each new stage to ensure align
 - Planning Mode (optional): outline missing security coverage using `#testing-guide.md`
 - Testing Mode: run `mvn verify` until ≥80% or documented rationale
 - Agent Mode: capture coverage deltas and evidence paths in `#test-coverage.md`
-- Hand-Off: log executed suites, pass/fail status, remaining test work
+- Hand-Off: `/hand-off log executed suites, pass/fail status, remaining test work`
 
 ## Stage 5 – Secure Feature Implementation
 
