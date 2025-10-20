@@ -6,26 +6,26 @@ Follow these lean steps. After each stage, run Summarizer Mode with the Hand-Off
 
 | Stage | Primary Modes | Core Artifacts / Commands |
 | --- | --- | --- |
-| 0 | Agent | `./scripts/setup-lab.sh`, `npm run start` |
-| 1 | Agent → Testing | `.github/copilot-instructions.md`, `npm run lint`, `npm run test` |
+| 0 | Agent | `./scripts/setup-lab.sh`, `mvn spring-boot:run` |
+| 1 | Agent → Testing | `.github/copilot-instructions.md`, `mvn test`, `mvn verify` |
 | 2 | Planning → Verification Agent → Agent | `docs/vulnerability-guide.md`, `docs/test-coverage.md`, plan.md |
 | 3 | Agent ↔ Need Review | `src/app/**`, `VULNERABILITIES.md`, `FIXES.md` |
-| 4 | Planning → Testing → Agent | `docs/testing-guide.md`, `npm run test:coverage`, `docs/test-coverage.md` |
+| 4 | Planning → Testing → Agent | `docs/testing-guide.md`, `mvn verify`, `docs/test-coverage.md` |
 | 5 | Planning → Verification Agent → Agent ↔ Need Review | `docs/secure-features-guide.md`, feature specs |
-| 6 | Testing → Agent | `npm run lint`, `npm run lint:security`, `npm run test:coverage`, `npm audit --audit-level=high`, `./scripts/generate-report.sh` |
+| 6 | Testing → Agent | `mvn test`, `mvn verify`, `mvn dependency:tree`, `./scripts/generate-report.sh` |
 | 7 | Agent ↔ Need Review | `homework/README.md` |
 | 8 | Verification Agent → Agent ↔ Need Review | `SECURITY.md`, `homework/GRADING_RUBRIC.md`, PR template |
 
 ## Stage 0 – Environment Setup
 - Agent Mode: `#runInTerminal #setup-lab.sh`, make sure both chat variables are actually linked if copying/pasting
-- Agent Mode: `#runInTerminal npm run start` (initial build issues are fine)
+- Agent Mode: `#runInTerminal mvn spring-boot:run` (initial build issues are fine)
 - Hand-Off: summarize setup status and blockers, you'll notice it isn't able to run the editFile tool. This is on purpose; You should add it yourself then re-run the /hand-off command
 
 ## Stage 1 – Governance Alignment
 - First, make sure that you are still inside of Agent mode
 - Read `.github/copilot-instructions.md` and each chatmode file
 - Inspect available tools (wrench icon) without changing settings
-- Testing Mode: run `npm run lint` and `npm run test:coverage`; log assumptions in `docs/test-coverage.md`, we actually don't need to type `#runInTerminal` every time, each tool has a prompt associated with it that tells copilot when it can make use of it, the testing chatmode also tells it this
+- Testing Mode: run `mvn test` and `mvn verify`; log assumptions in `docs/test-coverage.md`, we actually don't need to type `#runInTerminal` every time, each tool has a prompt associated with it that tells copilot when it can make use of it, the testing chatmode also tells it this
 - Hand-Off: note guardrail highlights, command outcomes, gaps
 
 ## Stage 2 – Baseline Assessment
@@ -42,7 +42,7 @@ Follow these lean steps. After each stage, run Summarizer Mode with the Hand-Off
 
 ## Stage 4 – Security Test Generation
 - Planning Mode (optional): outline missing security coverage using `#testing-guide.md`
-- Testing Mode: run `npm run test:coverage` until ≥80% or documented rationale
+- Testing Mode: run `mvn verify` until ≥80% or documented rationale
 - Agent Mode: capture coverage deltas and evidence paths in `#test-coverage.md`
 - Hand-Off: log executed suites, pass/fail status, remaining test work
 
@@ -54,7 +54,7 @@ Follow these lean steps. After each stage, run Summarizer Mode with the Hand-Off
 - Hand-Off: capture implemented pieces, validation outcomes, and TODOs
 
 ## Stage 6 – Governance Validation & Reporting
-- Testing Mode: run `npm run lint`, `npm run lint:security`, `npm run test:coverage`, `npm audit --audit-level=high` (or `./scripts/run-all-checks.sh`)
+- Testing Mode: run `mvn clean`, `mvn test`, `mvn verify`, `mvn dependency:tree` (or `./scripts/run-all-checks.sh`)
 - Testing Mode: execute `./scripts/generate-report.sh`; inspect `governance-report.md` in Agent Mode
 - Agent Mode: refresh `VULNERABILITIES.md`, `FIXES.md`, `COPILOT_USAGE.md` with final status
 - Hand-Off: state command results, report readiness, outstanding risks
