@@ -92,7 +92,7 @@ xdg-open target/site/jacoco/index.html
 | Flaky tests due to time | Use deterministic clock implementations (`Clock` injection) and fixed timestamps. |
 | MockMvc 401/403 responses | Ensure tests load security configuration and authenticate via Spring Security test support. |
 | Temporary files leaking | Use `@TempDir` and close all streams; verify clean-up in `@AfterEach`. |
-| Copilot generating Angular/Jasmine code | Reiterate the Spring Boot/JUnit context in the prompt and attach relevant Java files. |
+| Copilot generating front-end (Angular/Jasmine) code | Reiterate the Spring Boot/JUnit context in the prompt and attach relevant Java files. |
 
 ## Exit Criteria
 - Tests added/updated and committed.
