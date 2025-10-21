@@ -1,280 +1,113 @@
-# Stage 4 – Implement Secure Features with GitHub Copilot
+# Stage 4 – Implement Secure Features with GitHub Copilot (Spring Boot)
 
 ## Objective
-Use GitHub Copilot with team instructions to implement new secure features following security best practices.
+Move beyond remediation and add proactive security controls that harden the application. Use Copilot to assist, but anchor every decision in `.github/copilot-instructions.md`, OWASP guidance, and the governance evidence you have already gathered.
 
 ## Prerequisites
-- Completed Stage 3 (security test generation)
-- GitHub Copilot enabled in your IDE
-- Understanding of team security guidelines
+- Stages 1–3 complete (vulnerabilities catalogued, fixes implemented, tests in place).
+- `docs/workflow-tracker.md` updated with the latest remediation status.
+- Coverage gaps and remaining risks captured in `docs/test-coverage.md`.
 
-## Overview
-In this exercise, you'll implement new security features from scratch using Copilot while following your team's security guidelines. This demonstrates how Copilot can help you write secure code proactively, not just fix existing vulnerabilities.
+## Planning Checklist
+Before you touch code:
+1. Launch **Plan Mode** and draft `docs/plans/stage4-plan.md` (or similar) that covers:
+   - Target classes and packages.
+   - New configuration properties or secrets.
+   - Validation/test strategy.
+   - Documentation updates (README, tracker, security docs).
+2. Confirm the plan references `.github/copilot-instructions.md`, `docs/vulnerability-guide.md`, and this guide.
+3. Log assumptions, dependencies, and open questions in `docs/workflow-tracker.md`.
 
-## Instructions
+## Feature Backlog
 
-### Plan Before Building Features
+### 1. Security Headers Filter
+Create a servlet filter that enforces defensive HTTP headers on every response.
 
-- Start in GitHub Copilot Chat **Plan Mode** (configured via `.github/chatmodes/planning.chatmode.md`) to outline the secure feature work ahead: target files, security requirements, dependencies, and documentation needs.
-- Record the strategy—covering each component/service to build, validation steps, testing approach, and governance artifacts—in a Markdown plan saved to `docs/plans/stage4-plan.md` (or similar).
-- Confirm the plan references the relevant guidance (`.github/copilot-instructions.md`, `SECURITY.md`, quality gates) before you begin implementing code.
+- **Suggested file:** `src/main/java/com/github/copilot/lab/security/SecurityHeadersFilter.java`
+- **Requirements:**
+  - Add headers: `Strict-Transport-Security`, `X-Content-Type-Options`, `X-Frame-Options`, `X-XSS-Protection` (legacy), `Referrer-Policy`, and a restrictive `Content-Security-Policy`.
+  - Make the filter conditional on configuration (`security.headers.enabled=true` by default).
+  - Ensure the filter runs once per request (extend `OncePerRequestFilter`).
+  - Provide structured logging when headers are applied or skipped.
+- **Validation:**
+  - Add integration tests (`SecurityHeadersFilterTest`) using MockMvc to assert headers appear.
+  - Document new properties in `README.md` and `application.properties`.
 
-### Step 1: Implement JWT Interceptor
-Create a secure HTTP interceptor to handle JWT tokens.
+### 2. Audit Trail Service
+Provide an auditable record for sensitive operations such as report exports and file uploads.
 
-**File to create:** `src/app/interceptors/jwt.interceptor.ts`
+- **Suggested files:**
+  - `src/main/java/com/github/copilot/lab/audit/AuditTrailService.java`
+  - `src/main/java/com/github/copilot/lab/audit/AuditEvent.java` (immutable value object)
+- **Requirements:**
+  - Record who performed the action, the resource identifier, timestamp, IP address, and outcome.
+  - Store events in a durable store (JPA entity or append-only log). If persistence is out of scope, implement a pluggable interface with a stub repository and document the TODO.
+  - Expose helper methods controllers can call (`recordReportExport`, `recordFileUpload`, etc.).
+  - Ensure logging sanitises user input and uses MDC correlation IDs when available.
+- **Validation:**
+  - Unit tests verifying event creation, sanitisation, and repository interaction (use Mockito).
+  - Update controllers to invoke the audit service; tests should assert audit calls happen.
 
-**Prompt to use with Copilot:**
-```
-Following our team instructions in .github/copilot-instructions.md, 
-create an Angular HTTP interceptor that:
-1. Adds JWT token from secure storage to outgoing requests
-2. Handles 401 responses by redirecting to login
-3. Does not log tokens or sensitive headers
-4. Validates token expiration before adding to request
-5. Handles token refresh when expired
-6. Uses proper TypeScript types
-```
+### 3. File Scanning & Quarantine Pipeline
+Augment file upload handling with antivirus scanning and quarantine support.
 
-**Expected Implementation:**
-- Intercepts HTTP requests
-- Retrieves token from secure storage (not localStorage)
-- Adds Authorization header only for authenticated routes
-- Handles token expiration gracefully
-- Redirects to login on 401 errors
-- No console.log of sensitive data
-- Proper error handling
+- **Suggested files:**
+  - `src/main/java/com/github/copilot/lab/files/FileScanService.java`
+  - `src/main/java/com/github/copilot/lab/files/FileQuarantineException.java`
+- **Requirements:**
+  - Provide a method `scan(InputStream stream, String originalFilename)` that returns a `ScanResult` enum (`CLEAN`, `INFECTED`, `UNKNOWN`).
+  - Integrate with a pluggable scanner (stub using configuration flag and log warnings if no scanner configured).
+  - When a file is flagged, move it to a quarantine directory outside the web root and alert via logging/AuditTrailService.
+  - Enforce a maximum file size and checksum logging without exposing raw data.
+- **Validation:**
+  - Tests covering clean/dirty/unknown responses.
+  - Integration tests ensuring uploads are rejected or quarantined; use temporary directories.
+  - Document quarantine behaviour and configuration in `README.md`.
 
-**Test the interceptor:**
-```bash
-npm run lint
-npm test -- --include='**/jwt.interceptor.spec.ts'
-```
+### 4. Report Export Policy
+Enforce least privilege and guard against untrusted export formats.
 
-### Step 2: Implement Route Guard
-Create an authentication guard to protect routes.
+- **Suggested files:**
+  - `src/main/java/com/github/copilot/lab/report/ReportExportPolicy.java`
+  - `src/main/java/com/github/copilot/lab/report/ReportFormat.java`
+- **Requirements:**
+  - Maintain an allow-list of export formats (e.g., PDF, CSV) with associated MIME types and generator beans.
+  - Validate `reportId` ownership before exporting (hook into AuditTrailService for logging).
+  - Deny exports when the requesting user lacks required roles (Spring Security `@PreAuthorize` or service-level checks).
+  - Provide defensive defaults if configuration references unknown formats.
+- **Validation:**
+  - Unit tests verifying the allow-list and permission checks.
+  - Integration test ensuring denied requests return 403 and do not hit the exporter.
 
-**File to create:** `src/app/guards/auth.guard.ts`
+### 5. Configuration Hardening
+Externalise newly introduced settings and provide secure defaults.
 
-**Prompt to use with Copilot:**
-```
-Following our team instructions, create an Angular CanActivate guard that:
-1. Checks if user is authenticated
-2. Validates token is not expired
-3. Redirects to login with safe returnUrl
-4. Does not expose authentication details in console
-5. Handles edge cases (missing token, invalid token)
-6. Uses proper TypeScript types and interfaces
-```
+- Consolidate security properties under `security.*` inside `application.properties`.
+- Provide `@ConfigurationProperties` binder classes for type-safe access.
+- Ensure sensitive defaults are not committed (use placeholders and document expected environment variables).
+- Update `README.md` and `docs/workflow-tracker.md` with configuration instructions and risk notes.
 
-**Expected Implementation:**
-- Implements CanActivate interface
-- Checks authentication state securely
-- Validates returnUrl to prevent open redirects
-- Returns UrlTree for safe redirects
-- No sensitive data exposure
-- Proper error handling
+## Execution Guidance
+- Work in Copilot **Agent Mode** while implementing features; switch to **Need Review Mode** for self-review slices.
+- Leverage Copilot suggestions but review for Spring idioms (constructor injection, `ResponseEntity`, logging).
+- Maintain small commits with clear messages referencing plan sections and tracker updates.
+- Keep `VULNERABILITIES.md` and `FIXES.md` aligned: note which vulnerabilities each feature mitigates or monitors.
 
-**Usage example in routing:**
-```typescript
-{
-  path: 'profile',
-  component: UserProfileComponent,
-  canActivate: [AuthGuard]
-}
-```
+## Testing Expectations
+- Unit tests for services/utilities (`src/test/java/...`).
+- MockMvc or WebTestClient tests for filters and controllers.
+- Jacoco coverage should remain ≥80%; update `docs/test-coverage.md` with deltas.
+- Run `mvn clean verify` after major feature branches.
+- Execute `./scripts/run-all-checks.sh` before declaring Stage 4 complete.
 
-### Step 3: Implement Input Sanitization Service
-Create a service to sanitize user inputs.
+## Documentation & Evidence
+- Update `docs/workflow-tracker.md` after each major step (planning, implementation, validation).
+- Summarise configuration and behavioural changes in `README.md`.
+- Capture Copilot usage in `COPILOT_USAGE.md`.
+- Note new security controls and monitoring hooks in `SECURITY.md` when preparing submission.
 
-**File to create:** `src/app/services/sanitization.service.ts`
-
-**Prompt to use with Copilot:**
-```
-Following our team instructions, create an Angular service that:
-1. Sanitizes HTML content using DomSanitizer
-2. Validates and sanitizes URLs
-3. Strips dangerous attributes from user input
-4. Provides methods for different sanitization contexts
-5. Returns SafeHtml, SafeUrl types appropriately
-6. Adds proper error handling and logging
-```
-
-**Expected Implementation:**
-- Uses Angular's DomSanitizer
-- Methods: sanitizeHtml(), sanitizeUrl(), stripScripts()
-- Returns proper Safe* types
-- Validates inputs before sanitization
-- Comprehensive JSDoc comments
-- Unit tests with XSS attempt examples
-
-**Usage example:**
-```typescript
-constructor(private sanitizer: SanitizationService) {}
-
-displayUserContent(html: string): SafeHtml {
-  return this.sanitizer.sanitizeHtml(html);
-}
-```
-
-### Step 4: Implement Secure Form Component
-Create a reactive form with comprehensive validation.
-
-**File to create:** `src/app/components/secure-form/secure-form.component.ts`
-
-**Prompt to use with Copilot:**
-```
-Following our team instructions, create an Angular component with a secure form that:
-1. Uses ReactiveFormsModule with proper validation
-2. Validates email, password strength, and username
-3. Sanitizes all inputs before submission
-4. Shows user-friendly validation messages
-5. Prevents submission of invalid data
-6. Implements proper ARIA labels for accessibility
-7. Handles errors without exposing system details
-```
-
-**Expected Implementation:**
-- FormBuilder with validators
-- Custom password strength validator
-- Email format validation
-- Input sanitization before submit
-- ARIA labels and roles
-- Accessible error messages
-- No inline event handlers
-
-**Validation requirements:**
-- Password: min 12 chars, uppercase, lowercase, number, special char
-- Email: valid email format
-- Username: alphanumeric, 3-20 chars
-- All fields: required, trimmed, no scripts
-
-### Step 5: Implement Secure File Upload Component
-Create a component for secure file uploads.
-
-**File to create:** `src/app/components/file-upload/file-upload.component.ts`
-
-**Prompt to use with Copilot:**
-```
-Following our team instructions, create an Angular file upload component that:
-1. Validates file type (only images: jpg, png, gif)
-2. Validates file size (max 5MB)
-3. Generates preview using DomSanitizer
-4. Shows upload progress
-5. Handles errors gracefully
-6. Does not expose file system paths
-7. Uses proper TypeScript types
-```
-
-**Expected Implementation:**
-- File input with accept attribute
-- FileReader with proper error handling
-- File type validation (MIME + extension)
-- File size validation
-- Safe URL generation for preview
-- Upload progress indicator
-- Error messages without details
-- Proper cleanup on destroy
-
-**Allowed file types:**
-```typescript
-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif'];
-const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif'];
-const MAX_SIZE = 5 * 1024 * 1024; // 5MB
-```
-
-## Testing Your Implementation
-
-### Run All Tests
-```bash
-npm test
-npm run lint
-npm run lint:security
-```
-
-### Manual Testing Checklist
-- [ ] JWT interceptor adds token to requests
-- [ ] Auth guard blocks unauthorized access
-- [ ] Sanitization service prevents XSS
-- [ ] Secure form validates all inputs
-- [ ] File upload rejects invalid files
-- [ ] No console.log statements
-- [ ] No localStorage for tokens
-- [ ] Proper error handling everywhere
-
-## Success Criteria
-- [ ] All components/services created
-- [ ] Unit tests with >80% coverage
-- [ ] All ESLint rules pass
-- [ ] No security warnings
-- [ ] Proper TypeScript types (no any)
-- [ ] Comprehensive error handling
-- [ ] Accessibility features implemented
-- [ ] Documentation/comments added
-
-## Advanced Challenge (Optional)
-
-### Implement Content Security Policy Helper
-Create a service to help enforce CSP headers.
-
-**Prompt to use:**
-```
-Create a service that helps developers understand and implement 
-Content Security Policy headers, with methods to validate 
-inline scripts and generate CSP-compliant code.
-```
-
-### Implement Security Headers Service
-Create a service that documents security headers for the backend team.
-
-**Features to include:**
-- X-Content-Type-Options
-- X-Frame-Options
-- Strict-Transport-Security
-- Content-Security-Policy
-- X-XSS-Protection (legacy)
-
-## Tips for Using Copilot
-1. **Reference Guidelines:** Always mention team instructions in prompts
-2. **Be Explicit:** Specify security requirements clearly
-3. **Iterate:** Refine prompts if output doesn't meet standards
-4. **Review:** Verify generated code follows best practices
-5. **Test Thoroughly:** Write tests for edge cases and attacks
-6. **Document:** Add comments explaining security decisions
-
-## Common Pitfalls to Avoid
-- Do not use localStorage for tokens
-- Do not log sensitive data
-- Do not expose error details to users
-- Do not skip input validation
-- Do not forget to sanitize user content
-- Do not use `any` type without justification
-- Do not omit error handling
-- Do not forget to unsubscribe
-
-## Real-World Application
-These patterns are used in production applications to:
-- Protect APIs with JWT authentication
-- Prevent unauthorized route access
-- Sanitize user-generated content
-- Validate form inputs
-- Handle file uploads securely
-
-## Next Steps
-After completing this stage:
-1. Review your implementations with a peer
-2. Run the full test suite
-3. Proceed to Stage 5 for governance validation & reporting
-4. Document patterns you want to reuse
-
-## Additional Resources
-- [Angular Security Guide](https://angular.io/guide/security)
-- [OWASP Top 10](https://owasp.org/www-project-top-ten/)
-- [JWT Best Practices](https://tools.ietf.org/html/rfc8725)
-- [Content Security Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP)
-
----
-
-**Time Estimate:** 45-60 minutes  
-**Difficulty:** Intermediate to Advanced  
-**Focus:** Proactive security implementation with AI assistance
+## Hand-Off
+When Stage 4 work is done:
+1. Run the Hand-Off prompt in Summarizer Mode to append a concise summary to `docs/workflow-tracker.md`.
+2. Highlight remaining tasks (e.g., production scanner integration, policy tuning).
+3. Share evidence locations so the next contributor—or reviewer—can continue without re-reading the entire history.

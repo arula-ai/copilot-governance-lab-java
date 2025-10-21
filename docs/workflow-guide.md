@@ -1,51 +1,52 @@
-# Delivery Workflow Overview
+# Delivery Workflow Overview (Spring Boot Track)
 
-The project ships with real Angular code that intentionally contains governance gaps.  
-Work through the stages below to take the codebase from vulnerable to production ready while leaving an auditable trail.
+The Java edition of the Copilot Governance Lab ships with intentionally vulnerable Spring Boot components. Your mission is to move the codebase from insecure to audit-ready while documenting every decision, command, and validation step. Follow the stages below, using the dedicated Copilot chat modes to keep evidence organised.
 
 ## Stage 0 – Prepare & Align
-- Review `.github/copilot-instructions.md`, `SECURITY.md`, `LAB_ACTION_GUIDE.md`, and `README.md`.
-- In Copilot **Plan Mode**, capture initial assumptions, risks, and scope in `docs/workflow-tracker.md`.
-- Familiarize yourself with the vulnerable files under `src/app/services/` and `src/app/components/`.
+- Read `.github/copilot-instructions.md`, `LAB_ACTION_GUIDE.md`, `README.md`, and (when available) `SECURITY.md`.
+- In Copilot **Plan Mode**, capture initial assumptions, risks, and questions in `docs/workflow-tracker.md`.
+- Familiarise yourself with the vulnerable Java classes referenced in `docs/vulnerability-guide.md` under `src/main/java/com/github/copilot/lab/`.
 
 ## Stage 1 – Assess the Baseline
 - Target files:
-  - `src/app/services/auth.service.vulnerable.ts`
-  - `src/app/components/login/login.component.vulnerable.ts`
-  - `src/app/components/user-profile/user-profile.component.vulnerable.ts`
-- Use `docs/vulnerability-guide.md` as a reference while cataloguing OWASP mappings, attack surfaces, and governance requirements.
-- Store findings in a plan file (e.g., `docs/plans/stage1-plan.md`) and log summary notes in `docs/workflow-tracker.md`.
+  - `AuthControllerVulnerable.java`
+  - `FileStorageServiceVulnerable.java`
+  - `ReportControllerVulnerable.java`
+- Use `docs/vulnerability-guide.md` to catalogue OWASP mappings, affected assets, logging concerns, and missing controls.
+- Persist findings in a dedicated plan (e.g., `docs/plans/stage1-plan.md`) and summarise key risks + open questions in `docs/workflow-tracker.md`.
 
-## Stage 2 – Remediation with Copilot
-- Fix the vulnerabilities **in place** inside the files listed above (remove the `.vulnerable` suffix once secure).
-- Follow the remediation guidance in `docs/vulnerability-guide.md` and honour `.github/copilot-instructions.md`.
-- Record execution details (commands, successes, blockers) in `docs/workflow-tracker.md`.
-- Use `docs/test-coverage.md` to log linting/test assumptions and command results.
+## Stage 2 – Remediate with Copilot
+- Remediate the vulnerable classes **in place**. Only drop the `Vulnerable` suffix after the code meets guardrails and tests pass.
+- Apply Spring Boot best practices: constructor injection, DTO validation, prepared statements/Spring Data, session regeneration, secure logging.
+- Record every Maven command (`mvn clean`, `mvn test`, `mvn verify`, `mvn dependency:tree`, `./scripts/run-all-checks.sh`) in `docs/test-coverage.md` with outcomes and coverage deltas.
+- Update `docs/workflow-tracker.md`, `VULNERABILITIES.md`, and `FIXES.md` with remediation progress and residual risks.
 
 ## Stage 3 – Generate Security Tests
-- Reference `docs/testing-guide.md` for required scenarios, coverage targets, and prompts.
-- Create/extend spec files under `src/app/` to achieve ≥80% coverage on critical paths.
-- Log coverage metrics and command results in `docs/test-coverage.md`, summarizing outcomes in `docs/workflow-tracker.md`.
+- Follow `docs/testing-guide.md` to design JUnit + Spring Boot test suites for remediated components.
+- Target coverage ≥80% across critical paths (authentication, file uploads, report exports). Use MockMvc, Spring Security test utilities, and Mockito.
+- Log coverage metrics, new test files, and command results in `docs/test-coverage.md`, then summarise the session in `docs/workflow-tracker.md`.
 
 ## Stage 4 – Implement Secure Enhancements
-- Follow `docs/secure-features-guide.md` to add hardened functionality (interceptors, guards, sanitization, forms, uploads).
-- Keep implementation within the standard Angular structure (`src/app/...`).
-- Document new features, risks, and validations in `docs/workflow-tracker.md`.
+- Use `docs/secure-features-guide.md` to add proactive controls (e.g., security filters, sanitisation utilities, policy enforcement).
+- Keep implementation within `src/main/java/com/github/copilot/lab/` and `src/main/resources/templates/` as appropriate.
+- Capture architectural decisions, new configuration properties, and validation plans in `docs/plans/stage4-plan.md` and the workflow tracker.
 
 ## Stage 5 – Governance Validation & Reporting
-- Run all quality gates (`npm run lint`, `npm run lint:security`, `npm run test:coverage`, `npm audit --audit-level=high`, optional `./scripts/run-all-checks.sh`).
-- Execute `./scripts/generate-report.sh` and review `governance-report.md`.
-- Update required documentation (`VULNERABILITIES.md`, `FIXES.md`, `COPILOT_USAGE.md`) and capture final status in `docs/workflow-tracker.md`.
-- Ensure submission artifacts are ready (branch, PR template, checklists).
+- Run end-to-end quality gates: `mvn clean verify`, `mvn dependency:tree`, `./scripts/run-all-checks.sh`.
+- Generate evidence with `./scripts/generate-report.sh` and review `governance-report.md`.
+- Refresh `VULNERABILITIES.md`, `FIXES.md`, `COPILOT_USAGE.md`, and create/update `SECURITY.md` if missing.
+- Log final command outcomes, blockers, and release readiness in `docs/workflow-tracker.md`.
+
+## Stage 6+ – Homework & Submission
+- Tackle optional challenges under `homework/` to deepen familiarity with secure coding and governance reporting.
+- Use the PR template to surface evidence, coverage metrics, and Copilot usage when you are ready to submit.
 
 ## Copilot Chat Modes Recap
-- **Plan Mode** – Build strategies, write plans, and log assumptions.
-- **Scrum Master Mode** – Break work into actionable tasks with acceptance notes.
-- **Testing Mode** – Execute lint/test suites, log results in `docs/test-coverage.md`, summarize in tracker.
-- **Validation Mode** – Confirm guardrails were met; log pass/fail status.
-- **Need Review Mode** – Perform final review, capture approvals/findings.
+- **Plan Mode** – Understand requirements, draft plans, and record assumptions.
+- **Scrum Master Mode** – Translate plans into task lists with owners and acceptance criteria.
+- **Testing Mode** – Execute Maven commands, log results in `docs/test-coverage.md`, highlight gaps.
+- **Validation Mode** – Audit changes against guardrails, enumerate pass/fail outcomes.
+- **Need Review Mode** – Perform final review slices before sign-off.
+- **Summarizer Mode** – Append concise hand-offs to `docs/workflow-tracker.md`.
 
-Deliverables should include:
-- Updated source files with vulnerabilities remediated.
-- Completed plans, trackers, and coverage logs under `docs/`.
-- Test suites and quality gate evidence demonstrating compliance.
+Always close the loop by updating the tracker and relevant documentation. The lab rewards teams that can prove what was done, why it was done, and how Copilot assisted along the way.

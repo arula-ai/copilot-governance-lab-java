@@ -1,173 +1,126 @@
-# Contributing to Copilot Governance Lab
+# Contributing to the Copilot Governance Lab (Spring Boot)
 
-Thank you for your interest in contributing to the Copilot Governance Lab for Angular!
+Thanks for investing in the Spring Boot edition of the GitHub Copilot Governance Lab! This project exists to help teams practice secure, well-documented AI-assisted development. Contributions should reinforce those goals: follow guardrails, leave an audit trail, and teach future participants.
 
 ## Getting Started
-
-1. Fork the repository
-2. Clone your fork locally
-3. Run `./scripts/setup-lab.sh` to set up dependencies
-4. Create a new branch for your changes
+1. Fork this repository and clone your fork locally.
+2. Run `./scripts/setup-lab.sh` to verify Java/Maven prerequisites and perform an initial `mvn validate`.
+3. Create a feature branch (`git checkout -b feat/<short-description>`).
+4. Review `.github/copilot-instructions.md`, `LAB_ACTION_GUIDE.md`, and `docs/workflow-guide.md` before making changes.
 
 ## Development Workflow
 
-### Before Making Changes
-1. Review `.github/copilot-instructions.md` for coding standards
-2. Ensure your IDE has GitHub Copilot enabled
-3. Pull the latest changes from main
+### Before You Code
+- Ensure your IDE has GitHub Copilot enabled and configured to respect repository instructions.
+- Pull the latest changes from `origin/master`.
+- Capture assumptions, risks, and plan-of-attack in `docs/workflow-tracker.md` and a plan file under `docs/plans/` when applicable.
 
-### Making Changes
-1. Follow the team instructions in `.github/copilot-instructions.md`
-2. Write tests for new functionality
-3. Ensure all tests pass: `npm test`
-4. Run linting: `npm run lint && npm run lint:security`
-5. Check test coverage: `npm run test:coverage`
+### Working on Changes
+1. Follow the secure coding practices documented in `.github/copilot-instructions.md`.
+2. Keep controllers thin and push business logic into services that can be unit tested.
+3. Prefer constructor injection, immutable DTOs, and explicit validation (`@Valid`, constraint annotations).
+4. Sanitize all user input before rendering in Thymeleaf templates (`th:text`).
+5. Keep logs free of credentials, tokens, or PII.
+
+### Required Commands
+Run these locally before opening a pull request:
+```bash
+mvn clean
+mvn test
+mvn verify                     # generates Jacoco
+mvn dependency:tree            # capture dependency review notes
+./scripts/run-all-checks.sh    # optional but encouraged for end-to-end validation
+```
+Record the command results, coverage metrics, and residual risks in `docs/test-coverage.md` and `docs/workflow-tracker.md`.
 
 ### Using GitHub Copilot
-- Always reference team instructions when prompting Copilot
-- Review all generated code carefully
-- Verify that generated code follows Angular best practices
-- Ensure generated tests actually test the functionality
-- Never commit secrets or API keys
+- Always reference relevant guardrails in your prompts (e.g., “Following `.github/copilot-instructions.md`…”).
+- Provide file context so Copilot understands the surrounding Spring Boot patterns.
+- Review every suggestion for security, correctness, and adherence to the lab style.
+- Document Copilot usage in `COPILOT_USAGE.md` (percentage, prompts, acceptance criteria).
+- Never accept suggestions that introduce hard-coded secrets, disable validation, or bypass logging standards.
 
-## Pull Request Process
-
-1. Update documentation for any changed functionality
-2. Fill out the PR template completely
-3. Declare Copilot usage percentage
-4. Ensure all CI checks pass
-5. Request review from appropriate team members
+## Pull Request Expectations
+1. Update documentation (`README.md`, `docs/`, `VULNERABILITIES.md`, `FIXES.md`, `COPILOT_USAGE.md`) as needed.
+2. Complete the PR template checklists—including Copilot usage declaration and coverage metrics.
+3. Attach evidence of the Maven commands you ran (summaries or links to tracker entries).
+4. Ensure GitHub Actions (quality gates & security scan) pass.
+5. Request review from a maintainer or practice buddy.
 
 ### PR Checklist
-- [ ] Code follows team instructions
-- [ ] Tests written and passing (≥80% coverage)
-- [ ] ESLint passing (no warnings)
-- [ ] Security scan passing
-- [ ] Documentation updated
-- [ ] No console.log statements
-- [ ] No sensitive data exposed
+- [ ] Changes follow `.github/copilot-instructions.md`.
+- [ ] `mvn clean verify` passes locally.
+- [ ] Jacoco coverage ≥ 80% (or exception documented in `docs/test-coverage.md`).
+- [ ] `mvn dependency:tree` output reviewed; risky libraries noted.
+- [ ] `VULNERABILITIES.md` / `FIXES.md` / `COPILOT_USAGE.md` updated if applicable.
+- [ ] No debug logging (`System.out.println`, `printStackTrace`, etc.).
+- [ ] Documentation and tracker entries refreshed.
 
 ## Code Review Guidelines
 
-### As a Reviewer
-- Verify Copilot-generated code is appropriate
-- Check for security vulnerabilities
-- Ensure tests are comprehensive
-- Validate Angular best practices
-- Provide constructive feedback
+### Reviewers Should
+- Confirm secure coding standards (validation, encoding, logging hygiene, error handling).
+- Verify Copilot-generated code is justified and free of hidden vulnerabilities.
+- Demand evidence of tests, coverage, and dependency review.
+- Check that documentation artifacts were updated.
+- Provide actionable feedback organized by severity.
 
-### As an Author
-- Respond to feedback promptly
-- Explain Copilot usage decisions
-- Update code based on review comments
-- Re-request review after changes
+### Authors Should
+- Respond promptly to review comments.
+- Explain Copilot prompts/decisions when asked.
+- Update code and documentation to address findings.
+- Request re-review once outstanding items are resolved.
 
-## Security
+## Security & Compliance
+- Do not report vulnerabilities via public issues—email `security@example.com`.
+- Never commit secrets, access tokens, or sample certificates.
+- Keep dependencies up to date; log results of `mvn dependency:tree` and scanners.
+- Use OWASP Top 10 as your baseline for risk discussions.
+- Ensure logs, error messages, and HTTP responses avoid leaking implementation details.
 
-### Reporting Vulnerabilities
-- Do not open public issues for security vulnerabilities
-- Email security@example.com with details
-- Include steps to reproduce
-- Allow time for patch before disclosure
+## Testing Standards
+- Every code change requires unit or integration tests. Place tests under `src/test/java/...`.
+- Use JUnit 5 + Spring Boot Test; mock external systems with Mockito or `@MockBean`.
+- Validate negative/edge cases: invalid inputs, exceptions, unauthorized access.
+- Keep tests deterministic (no real network/disk IO without explicit justification).
+- For asynchronous or scheduled work, use Spring testing utilities and virtual clocks.
 
-### Security Standards
-- All PRs must pass security ESLint checks
-- npm audit must show no high/critical vulnerabilities
-- No sensitive data in code or commits
-- Follow OWASP Top 10 guidelines
-
-## Testing
-
-### Test Requirements
-- All new code must have tests
-- Minimum 80% coverage required
-- Tests must actually verify functionality
-- Use meaningful test descriptions
-- Mock external dependencies
-
-### Running Tests
+### Helpful Commands
 ```bash
-npm test                 # Run tests in watch mode
-npm run test:headless    # Run tests once
-npm run test:coverage    # Generate coverage report
+mvn -Dtest=<ClassNameTest> test      # Run targeted tests
+mvn verify -DskipITs                 # Skip slow integration tests (only with approval)
+mvn jacoco:report                    # Explicitly regenerate coverage report
 ```
 
-## Documentation
+## Style Guide Highlights
+- Package names use `com.github.copilot.lab.<feature>`.
+- Use `@ConfigurationProperties` for new settings; document them in `README.md`.
+- Prefer `ResponseEntity<T>` for controllers; centralize exception handling in `@ControllerAdvice`.
+- Use SLF4J (`private static final Logger log = LoggerFactory.getLogger(...)`).
+- Avoid static state unless specifically justified.
+- Keep methods concise (<30 lines) and classes focused on a single responsibility.
 
-### What to Document
-- New features and components
-- Security considerations
-- Usage examples
-- Breaking changes
-- Migration guides
+## Documentation Expectations
+- Plans under `docs/plans/` describe scope, risks, and validation steps.
+- `docs/workflow-tracker.md` gets an entry after every stage or substantive work session.
+- Coverage, lint, and audit outcomes belong in `docs/test-coverage.md`.
+- Update `VULNERABILITIES.md` and `FIXES.md` so the audit trail stays current.
+- Explain deviations from guardrails (temporary mitigations, accepted risks) in the tracker.
 
-### Documentation Standards
-- Use clear, concise language
-- Include code examples
-- Keep README.md up to date
-- Document public APIs
-- Add inline comments for complex logic
-
-## Commit Messages
-
-### Format
+## Commit Message Convention
 ```
-<type>(<scope>): <subject>
+<type>(<scope>): <short summary>
 
-<body>
+<Longer body explaining motivation, evidence, and guardrails touched>
 
-<footer>
+Refs: <issue/plan links, tracker entries>
 ```
-
-### Types
-- `feat`: New feature
-- `fix`: Bug fix
-- `docs`: Documentation only
-- `style`: Code formatting
-- `refactor`: Code restructuring
-- `test`: Adding tests
-- `chore`: Maintenance
-
-### Examples
-```
-feat(auth): add JWT interceptor with refresh token logic
-
-Implements token refresh mechanism to automatically
-renew expired tokens without requiring user re-login.
-
-Follows team security guidelines in copilot-instructions.md
-```
-
-## Code Style
-
-### TypeScript
-- Use strict TypeScript settings
-- Avoid `any` type without justification
-- Prefer interfaces over types for objects
-- Use meaningful variable names
-- Follow Angular naming conventions
-
-### Angular
-- One component per file
-- Use OnPush change detection when possible
-- Implement proper lifecycle hooks
-- Unsubscribe from observables
-- Use reactive forms for complex forms
-
-### Testing
-- Use AAA pattern (Arrange, Act, Assert)
-- One assertion per test when possible
-- Use descriptive test names
-- Mock external dependencies
-- Test both success and error paths
+Common types: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `build`.
 
 ## Questions?
+- Review the guides in `docs/` and the lab action guide.
+- Search open issues or discussions first.
+- Reach out to maintainers via the preferred team channel.
+- When in doubt, document your assumption in `docs/workflow-tracker.md` and proceed transparently.
 
-- Check existing issues and discussions
-- Review documentation in `/docs`
-- Ask in team chat or discussions
-- Open an issue for bugs or features
-
-## License
-
-By contributing, you agree that your contributions will be licensed under the project's license.
+By contributing, you agree that your submissions will be licensed under the project’s existing license and that you will preserve the governance evidence required by the lab.

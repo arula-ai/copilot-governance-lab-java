@@ -1,145 +1,143 @@
-# GitHub Copilot Governance Lab - Angular
+# GitHub Copilot Governance Lab – Spring Boot
 
-This repository contains an Angular project with intentionally vulnerable features for practicing GitHub Copilot governance end to end.
+This repository contains a Spring Boot 3 project seeded with governance gaps so you can practice directing GitHub Copilot, documenting decisions, and delivering secure fixes end to end. Every stage of the lab focuses on pairing AI-assisted development with auditable evidence: plans, test results, reports, and code reviews.
 
-**Prerequisites:**
-- Node.js 18+
-- Angular CLI 16+
-- IDE with GitHub Copilot extension
-- Git
+## Prerequisites
+- JDK 17 (Temurin or equivalent)
+- Maven 3.9+
+- Bash-compatible shell (required for scripts under `scripts/`)
+- An IDE with the GitHub Copilot extension installed
+- Git command-line tools
 
+## Quick Start
 ```bash
-# Clone the repository
 git clone <repository-url>
-cd copilot-governance-lab-angular
+cd copilot-governance-lab-java
 
-# Run setup script
+# One-time setup (validates Java/Maven and runs mvn validate)
 ./scripts/setup-lab.sh
 
-# Or manual setup
-npm install
-npm install -g @angular/cli@16
+# Start the application (expected to fail until you remediate vulnerabilities)
+mvn spring-boot:run
 ```
 
-## Quick Commands
+## Common Commands
 ```bash
-# Development
-npm start                 # Start dev server (http://localhost:4200)
-npm test                  # Run tests
-npm run test:coverage     # Run tests with coverage
+# Compile + unit tests
+mvn clean test
 
-# Quality Checks
-npm run lint              # Run ESLint
-npm run lint:security     # Run security ESLint
-npm audit                 # Check vulnerabilities
+# Full verification (runs tests, generates Jacoco)
+mvn verify
+
+# Inspect the dependency tree for outdated or risky libraries
+mvn dependency:tree
+
+# End-to-end governance gates
+./scripts/run-all-checks.sh
+
+# Assemble evidence for reports
+./scripts/generate-report.sh
 ```
+
+## Governance Workflow Overview
+
+| Stage | Focus | Key References |
+| --- | --- | --- |
+| 0 | Environment setup, baseline assumptions | `.github/copilot-instructions.md`, `LAB_ACTION_GUIDE.md`, `docs/workflow-tracker.md` |
+| 1 | Vulnerability assessment | `docs/vulnerability-guide.md`, `docs/plans/stage1-plan.md` |
+| 2 | Remediation implementation | `docs/vulnerability-guide.md`, `docs/test-coverage.md` |
+| 3 | Security test generation | `docs/testing-guide.md`, `docs/test-coverage.md` |
+| 4 | Secure feature enhancements | `docs/secure-features-guide.md`, `docs/plans/stage4-plan.md` |
+| 5 | Governance validation & reporting | `./scripts/run-all-checks.sh`, `./scripts/generate-report.sh`, documentation updates |
+| 6 | Homework / stretch exercises | `homework/README.md`, challenge folders |
+| 7 | Submission readiness | `homework/GRADING_RUBRIC.md`, PR template |
+
+See `LAB_ACTION_GUIDE.md` and `docs/workflow-guide.md` for detailed responsibilities per stage and the expected Copilot chat modes.
 
 ## Lab Architecture
 
 ```mermaid
 graph TB
-    A[Clone Repository] --> B{Choose Setup}
-    B -->|DevContainer| C[30-second Setup]
-    B -->|Local| D[5-minute Setup]
-    C --> E[Stage 0: Prepare & Align]
-    D --> E
-    E --> F[Stage 1: Assess Baseline]
-    F --> G[Stage 2: Remediate]
-    G --> H[Stage 3: Generate Security Tests]
-    H --> I[Stage 4: Secure Enhancements]
-    I --> J[Stage 5: Governance Review]
-    
-    style A fill:#e1f5ff
-    style B fill:#fff4e1
-    style C fill:#e8f5e9
-    style D fill:#e8f5e9
-    style E fill:#f3e5f5
-    style F fill:#f3e5f5
-    style G fill:#f3e5f5
-    style H fill:#f3e5f5
-    style I fill:#f3e5f5
-    style J fill:#c8e6c9
+    A[Clone Repository] --> B[Run setup-lab.sh]
+    B --> C[Stage 0: Align on guardrails]
+    C --> D[Stage 1: Assess vulnerabilities]
+    D --> E[Stage 2: Remediate with Copilot]
+    E --> F[Stage 3: Generate security tests]
+    F --> G[Stage 4: Ship secure features]
+    G --> H[Stage 5: Validate & report]
+    H --> I[Stage 6+: Homework & submission]
+
+    style A fill:#e1f5fe
+    style B fill:#fce4ec
+    style C fill:#ede7f6
+    style D fill:#ede7f6
+    style E fill:#ede7f6
+    style F fill:#ede7f6
+    style G fill:#ede7f6
+    style H fill:#c8e6c9
+    style I fill:#ffe0b2
 ```
 
-## Governed Workflow Stages
+## Intentional Vulnerabilities
+The lab introduces insecure controllers and services (see `docs/vulnerability-guide.md`) covering:
+- Plain-text credential handling and session fixation
+- Unsanitized file uploads and directory traversal
+- SQL injection and template-based XSS
+- Verbose logging of sensitive data
+- Missing audit trails and dependency hygiene
 
-1. **Stage 0 – Prepare & Align**  
-   Review `.github/copilot-instructions.md`, `SECURITY.md`, `README.md`, and `QUICK_START.md`. Capture initial assumptions in `docs/workflow-tracker.md`.
-2. **Stage 1 – Baseline Assessment**  
-   Audit the intentionally vulnerable components under `src/app/services/` and `src/app/components/` (see `docs/vulnerability-guide.md`) and record risks with OWASP mappings, saving your assessment to `docs/plans/stage1-plan.md`.
-3. **Stage 2 – Remediation with Copilot**  
-   Use Copilot-driven refactors directly in those component/service files (dropping the `.vulnerable` suffix once secure) while following `docs/vulnerability-guide.md` and the tasks captured in `docs/plans/stage2-plan.md`.
-4. **Stage 3 – Security Test Generation**  
-   Produce comprehensive Jasmine/Karma coverage using the playbook in `docs/testing-guide.md` and the plan you capture in `docs/plans/stage3-plan.md`.
-5. **Stage 4 – Secure Feature Implementation**  
-   Implement proactive security features following `docs/secure-features-guide.md` and `docs/plans/stage4-plan.md`.
-6. **Stage 5 – Governance Review & Reporting**  
-   Execute quality gates, generate `governance-report.md`, and finalize documentation.
+Stage 1 catalogues the issues; Stage 2 remediates them while maintaining a traceable paper trail.
 
-See `docs/workflow-guide.md` for detailed tasks per stage.
+## Running the Quality Gates
 
-## Running Analysis Tools
+| Goal | Command(s) | Evidence |
+| --- | --- | --- |
+| Unit/integration tests | `mvn test` | Console output, Jacoco reports under `target/site/jacoco` |
+| Full verification + coverage | `mvn verify` | `target/site/jacoco/index.html`, coverage % in `docs/test-coverage.md` |
+| Dependency review | `mvn dependency:tree` | Summaries in `docs/workflow-tracker.md` |
+| Combined governance checks | `./scripts/run-all-checks.sh` | Command log + captured failures |
+| Final report | `./scripts/generate-report.sh` | `governance-report.md` |
 
-```bash
-# ESLint
-npm run lint
+Document command executions and outcomes in `docs/test-coverage.md` and `docs/workflow-tracker.md` so downstream reviewers can audit your evidence.
 
-# Security-focused ESLint
-npm run lint:security
-
-# Check for vulnerabilities
-npm audit
-
-# Run tests with coverage
-npm run test:coverage
-
-# Analyze bundle size
-npm run build -- --stats-json
-npm run analyze
+## Project Layout (expected)
 ```
-
-## Project Structure
+├── src/
+│   ├── main/
+│   │   ├── java/com/github/copilot/lab/            # Controllers, services, configs (contains intentionally vulnerable code)
+│   │   └── resources/                              # application.properties, templates, static assets
+│   └── test/
+│       └── java/com/github/copilot/lab/            # JUnit + Spring Boot tests
+├── docs/                                           # Governance plans, workflow logs, coverage notes, stage guides
+├── scripts/                                        # Setup and reporting scripts
+├── static-analysis/                                # Checklists and policy docs
+├── homework/                                       # Stretch exercises and grading rubric
+└── .github/                                        # Copilot instructions, chat modes, workflows, templates
 ```
-├── src/app/
-│   ├── core/           # Core services, guards, interceptors
-│   ├── features/       # Feature modules
-│   └── shared/         # Shared components, models
-├── docs/                   # Governance plans, trackers, coverage logs, guides
-├── evaluation/         # Golden evaluation sets
-├── static-analysis/    # Analysis tool configs
-└── .github/           # GitHub-specific files
-```
-
-## Security Checklist
-- [ ] No sensitive data in localStorage
-- [ ] All inputs sanitized
-- [ ] JWT stored securely
-- [ ] Route guards implemented
-- [ ] XSS prevention active
-- [ ] CSRF protection enabled
-- [ ] No innerHTML with user content
-- [ ] Proper error handling
-- [ ] Memory leaks prevented
 
 ## Success Metrics
-Track these metrics as you implement governance:
-- Vulnerabilities detected: ___
-- Test coverage achieved: ___%
-- Bundle size: ___KB
-- ESLint warnings: ___
-- Accessibility score: ___
+- Vulnerabilities identified and tracked in `VULNERABILITIES.md`
+- Remediations documented in `FIXES.md`
+- Copilot usage disclosures logged in `COPILOT_USAGE.md`
+- ≥80% Jacoco coverage (or documented exception) recorded in `docs/test-coverage.md`
+- All Maven quality gates passing, with results summarized in `docs/workflow-tracker.md`
+- Governance evidence attached to the pull request template before submission
 
-## Common Issues & Solutions
+## Troubleshooting
 
-| Issue | Solution |
-|-------|----------|
-| Copilot not following instructions | Ensure `.github/copilot-instructions.md` is committed |
-| XSS vulnerabilities | Use DomSanitizer, avoid innerHTML |
-| Memory leaks | Unsubscribe from observables |
-| Large bundle size | Implement lazy loading |
+| Issue | Resolution |
+| --- | --- |
+| Java/Maven not detected during setup | Ensure `java -version` reports 17+, `mvn -version` reports 3.9+, then rerun `./scripts/setup-lab.sh`. |
+| `mvn spring-boot:run` fails immediately | This is expected until you remediate the vulnerable code; use the failure output to guide Stage 1 discovery. |
+| Coverage below threshold | Expand tests defined in `docs/testing-guide.md`, or justify the gap in `docs/test-coverage.md`. |
+| Copilot suggestions ignore guardrails | Re-state relevant sections from `.github/copilot-instructions.md` in your prompt and attach source context before requesting code. |
+| Scripts fail on Windows | Use WSL2 or a bash-compatible environment; the lab assumes GNU utilities. |
 
 ## Additional Resources
-- [Angular Security Guide](https://angular.io/guide/security)
-- [OWASP Angular Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Angular_Security_Cheat_Sheet.html)
-- [RxJS Best Practices](https://angular.io/guide/rx-library)
+- [Spring Boot Reference Documentation](https://docs.spring.io/spring-boot/docs/current/reference/html/)
+- [Spring Security Reference](https://docs.spring.io/spring-security/reference/index.html)
+- [OWASP Top 10](https://owasp.org/www-project-top-ten/)
+- [OWASP Cheat Sheets](https://cheatsheetseries.owasp.org/)
 - [GitHub Copilot Documentation](https://docs.github.com/copilot)
+
+Happy governing! Document every assumption, surface evidence for each fix, and keep the audit trail up to date.
